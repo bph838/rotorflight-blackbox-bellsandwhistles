@@ -28,7 +28,7 @@ var
     try {
 
         StepResponseCalc.initialize(flightLog, flightLog.getSysConfig());
-        StepResponsePlot.initialize(stepResponseCanvas);
+        StepResponsePlot.initialize(stepResponseCanvas, flightLog.getSysConfig());
 
         userSettings.stepResponseAxes = userSettings.stepResponseAxes || { roll: true, pitch: true, yaw: true };
         for (const axis in userSettings.stepResponseAxes) {

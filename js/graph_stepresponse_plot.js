@@ -14,6 +14,11 @@ const
         roll  : 'Roll',
         pitch : 'Pitch',
         yaw   : 'Yaw',
+    },
+    STEP_RESPONSE_AXIS_PID_FIELD = {
+        roll  : 'rollPID',
+        pitch : 'pitchPID',
+        yaw   : 'yawPID',
     };
 
 window.StepResponsePlot = window.StepResponsePlot || {
@@ -21,6 +26,7 @@ window.StepResponsePlot = window.StepResponsePlot || {
     _cachedCanvas   : null,
     _data           : null,
     _isFullScreen   : false,
+    _sysConfig      : null,
     _axisVisible    : { roll: true, pitch: true, yaw: true },
     _mousePosition  : {
             x : 0,
@@ -32,8 +38,9 @@ window.StepResponsePlot = window.StepResponsePlot || {
     },
 };
 
-StepResponsePlot.initialize = function(canvas) {
+StepResponsePlot.initialize = function(canvas, sysConfig) {
     this._canvasCtx = canvas.getContext("2d");
+    this._sysConfig = sysConfig;
     this._invalidateCache();
 };
 
@@ -181,13 +188,28 @@ StepResponsePlot._drawGrid = function(canvasCtx, WIDTH, HEIGHT) {
     }
 };
 
+StepResponsePlot._formatPID = function(axis) {
+
+    const pidField = STEP_RESPONSE_AXIS_PID_FIELD[axis];
+    const pid = this._sysConfig && this._sysConfig[pidField];
+
+    if (!pid || pid[0] == null) {
+        return null;
+    }
+
+    // sysConfig.<axis>PID is [P, I, D, F, B, O]
+    return 'P:' + pid[0] + ' I:' + pid[1] + ' D:' + pid[2] + (pid[3] != null ? ' F:' + pid[3] : '');
+};
+
 StepResponsePlot._drawAxisResponse = function(canvasCtx, axis, WIDTH, HEIGHT, axisIndex) {
 
     const axisData = this._data[axis];
     const color = STEP_RESPONSE_AXIS_COLORS[axis];
+    const pidLabel = this._formatPID(axis);
+    const rowY = 12 + axisIndex * 17;
 
     if (!axisData || axisData.windowCount === 0) {
-        this._drawLabel(canvasCtx, STEP_RESPONSE_AXIS_LABELS[axis] + ': no data', WIDTH - 4, 12 + axisIndex * 12, 'right', 'top', color);
+        this._drawLabel(canvasCtx, pidLabel || (STEP_RESPONSE_AXIS_LABELS[axis] + ': no data'), WIDTH - 4, rowY, 'right', 'top', color);
         return;
     }
 
@@ -210,8 +232,8 @@ StepResponsePlot._drawAxisResponse = function(canvasCtx, axis, WIDTH, HEIGHT, ax
     canvasCtx.stroke();
 
     const status = axisData.valid ? '' : ' (low confidence)';
-    const label = STEP_RESPONSE_AXIS_LABELS[axis] + ': n=' + axisData.windowCount + status;
-    this._drawLabel(canvasCtx, label, WIDTH - 4, 12 + axisIndex * 12, 'right', 'top', color);
+    const label = (pidLabel || STEP_RESPONSE_AXIS_LABELS[axis]) + status;
+    this._drawLabel(canvasCtx, label, WIDTH - 4, rowY, 'right', 'top', color);
 };
 
 StepResponsePlot._drawMousePosition = function(canvasCtx) {
