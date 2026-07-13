@@ -252,6 +252,15 @@
                                 <span class="pull-right">A</span>
                             </a>
                         </li>
+                        <li>
+                            <a href="#" id="auto-hide-menu" class="view-stepresponse auto-hide-menu" data-toggle="tooltip" title="View/hide step response">
+                                <svg width="14" height="14" viewBox="0 0 8.467 8.467" style="vertical-align:-2px">
+                                    <path fill="none" stroke="currentColor" stroke-width=".35" stroke-dasharray=".4,.3" d="M0.3,2.6H8.1"/>
+                                    <path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width=".5" d="M0.4,8 C1.4,8 1.8,1.2 2.8,1 C3.8,0.8 3.6,4.6 4.6,4.2 C5.6,3.8 5.4,2.4 6.4,2.6 C7.1,2.7 7.6,2.6 8.1,2.6"/>
+                                </svg> Step Response
+                            </a>
+                        </li>
+
                     </ul>
                 </div>
                 <div class="btn-group view-buttons-expanded" role="group">
@@ -284,6 +293,12 @@
                         </button>
                         <button type="button" class="btn btn-default view-analyser" data-toggle="tooltip" title="View/hide analyser display">
                             <span class="glyphicon glyphicon-equalizer"></span>
+                        </button>
+                          <button type="button" class="btn btn-default view-stepresponse" data-toggle="tooltip" title="View/hide step response">
+                            <svg width="16" height="16" viewBox="0 0 8.467 8.467" style="vertical-align:-3px">
+                                <path fill="none" stroke="currentColor" stroke-width=".35" stroke-dasharray=".4,.3" d="M0.3,2.6H8.1"/>
+                                <path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width=".5" d="M0.4,8 C1.4,8 1.8,1.2 2.8,1 C3.8,0.8 3.6,4.6 4.6,4.2 C5.6,3.8 5.4,2.4 6.4,2.6 C7.1,2.7 7.6,2.6 8.1,2.6"/>
+                            </svg>
                         </button>
                     </div>
                 </div>
@@ -492,6 +507,28 @@
                     <datalist id="analyserZoomYTicks">
                         <option>100</option>
                     </datalist>
+                </div>
+                <div id="stepResponse" class="stepresponse">
+                    <canvas width="0" height="0" id="stepResponseCanvas"></canvas>
+
+                    <span id="stepResponseToolbar">
+                        <div id="stepResponseAxisToggle" data-toggle="tooltip" title="Toggle axes">
+                            <label class="stepresponse-axis-label stepresponse-axis-roll">
+                                <input type="checkbox" class="stepresponse-toggle-axis" data-axis="roll" checked /> Roll
+                            </label>
+                            <label class="stepresponse-axis-label stepresponse-axis-pitch">
+                                <input type="checkbox" class="stepresponse-toggle-axis" data-axis="pitch" checked /> Pitch
+                            </label>
+                            <label class="stepresponse-axis-label stepresponse-axis-yaw">
+                                <input type="checkbox" class="stepresponse-toggle-axis" data-axis="yaw" checked /> Yaw
+                            </label>
+                        </div>
+
+                        <div id="stepResponseResize" class="btn-nobg view-stepresponse-fullscreen" data-toggle="tooltip" title="Zoom Step Response Window">
+                            <span class="glyphicon glyphicon-resize-full"></span>
+                            <span class="glyphicon glyphicon-resize-small"></span>
+                        </div>
+                    </span>
                 </div>
                 <canvas width="0" height="0" id="stickCanvas"></canvas>
                 <span class="log-open-legend-dialog glyphicon glyphicon-cog" data-toggle="tooltip" title="Show the legend"></span>
@@ -3486,6 +3523,9 @@
     <script src="js/graph_spectrum_plot.js"></script>
     <script src="js/graph_spectrum_calc.js"></script>
     <script src="js/graph_spectrum.js"></script>
+    <script src="js/graph_stepresponse_plot.js"></script>
+    <script src="js/graph_stepresponse_calc.js"></script>
+    <script src="js/graph_stepresponse.js"></script>
     <script src="js/sticks.js"></script>
     <script src="js/csv-exporter.js"></script>
     <script src="js/gui.js"></script>

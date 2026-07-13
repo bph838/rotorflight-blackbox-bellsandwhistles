@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(node -c js/graph_stepresponse.js)",
+      "Bash(node -c js/graph_stepresponse_plot.js)",
+      "Bash(node -c js/graph_stepresponse_calc.js)"
+    ]
+  }
+}
