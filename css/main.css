@@ -660,7 +660,7 @@ html.has-stepresponse #stepResponse {
 
 #stepResponseAxisToggle {
     color: #eee;
-    left: 5px;
+    left: 45px;
     top: 5px;
     z-index: 9;
     position: absolute;
@@ -671,18 +671,24 @@ html.has-stepresponse #stepResponse {
 }
 
 #stepResponseAxisToggle .stepresponse-axis-label {
-    margin-right: 8px;
+    display: block;
+    margin: 0 0 4px 0;
     font-weight: normal;
     cursor: pointer;
     white-space: nowrap;
 }
 
 #stepResponseAxisToggle .stepresponse-axis-label:last-child {
-    margin-right: 0;
+    margin-bottom: 0;
 }
 
-#stepResponseAxisToggle .stepresponse-axis-label input {
-    margin-right: 3px;
+#stepResponseAxisToggle .stepresponse-axis-label input.ios-switch + div {
+    display: inline-block;
+}
+
+#stepResponseAxisToggle .stepresponse-axis-name {
+    display: inline-block;
+    width: 36px;
     vertical-align: middle;
 }
 
