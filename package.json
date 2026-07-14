@@ -25,6 +25,7 @@
   "author": "The Rotorflight open source project.",
   "license": "GPL-3.0",
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.32.1",
     "bootstrap": "~3.4.1",
     "html2canvas": "^1.0.0-rc.5",
     "lodash": "^4.17.21",

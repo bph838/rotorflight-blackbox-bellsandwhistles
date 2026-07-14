@@ -1178,6 +1178,15 @@ function BlackboxLogViewer() {
             invalidateGraph();
         });
 
+        $(".ai-analyse-stepresponse").click(function() {
+            var stepResponse = graph.getStepResponse();
+            stepResponse.plot(); // Ensure the step response data has been calculated at least once
+            var imageDataUrl = stepResponse.captureImage();
+            var configSummary = AIAnalysis.buildConfigSummary(flightLog.getSysConfig());
+
+            aiAnalysisDialog.show(imageDataUrl, configSummary, userSettings.aiApiKey, userSettings.aiAnalysisInstructions);
+        });
+
         $(".view-zoom-in").click(function() {
             zoomIn();
         });
@@ -1448,6 +1457,11 @@ function BlackboxLogViewer() {
                     videoConfig = newConfig;
 
                     prefs.set('videoConfig', newConfig);
+                }),
+
+                aiAnalysisDialog = new AIAnalysisDialog($("#dlgAIAnalysis"), function(newInstructions) {
+                    userSettings.aiAnalysisInstructions = newInstructions;
+                    prefs.set('userSettings', userSettings);
                 });
 
         $(".open-graph-configuration-dialog").click(function(e) {

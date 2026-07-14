@@ -244,6 +244,8 @@ function dist() {
         './js/graph_stepresponse.js',
         './js/graph_stepresponse_calc.js',
         './js/graph_stepresponse_plot.js',
+        './js/ai_analysis.js',
+        './js/ai_analysis_dialog.js',
         './js/grapher.js',
         './js/sticks.js',
         './js/gui.js',

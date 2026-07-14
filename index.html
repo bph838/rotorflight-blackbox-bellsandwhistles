@@ -300,6 +300,9 @@
                                 <path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width=".5" d="M0.4,8 C1.4,8 1.8,1.2 2.8,1 C3.8,0.8 3.6,4.6 4.6,4.2 C5.6,3.8 5.4,2.4 6.4,2.6 C7.1,2.7 7.6,2.6 8.1,2.6"/>
                             </svg>
                         </button>
+                        <button type="button" class="btn btn-default ai-analyse-stepresponse" data-toggle="tooltip" title="Send the step response graph to AI for analysis">
+                            <span class="glyphicon glyphicon-comment"></span>
+                        </button>
                     </div>
                 </div>
             </li>
@@ -3081,6 +3084,34 @@
         </div>
     </div>
 
+    <div class="modal fade ai-analysis-dialog" id="dlgAIAnalysis">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close" data-toggle="tooltip" title="Close the dialog box">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                    <h4 class="modal-title">AI Step Response Analysis</h4>
+                </div>
+                <div class="modal-body">
+                    <img class="ai-analysis-preview" alt="Step response graph preview" />
+                    <div class="form-group">
+                        <label>Extra Instructions for the AI</label>
+                        <textarea class="ai-analysis-instructions form-control" rows="3"
+                            placeholder="e.g. I want the Yaw to be as fast as possible"></textarea>
+                    </div>
+                    <div class="ai-analysis-loading" style="display:none;">Analyzing, please wait&hellip;</div>
+                    <div class="alert alert-danger ai-analysis-error" style="display:none;"></div>
+                    <pre class="ai-analysis-result" style="display:none;"></pre>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal" data-toggle="tooltip" title="Close dialog box">Close</button>
+                    <button type="button" class="btn btn-primary ai-analysis-dialog-analyze" data-toggle="tooltip" title="Send the graph to the AI for analysis">Analyze</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div class="modal fade user-settings-dialog" id="dlgUserSettings">
         <div class="modal-dialog">
             <div class="modal-content">
@@ -3318,6 +3349,19 @@
                                     </table>
                                 </div>
                             </div>
+                            <div class="gui_box grey top-spacer ai-analysis-settings">
+                                <div class="gui_box_titlebar">
+                                    <div class="spacer_box_title">AI Analysis Settings</div>
+                                </div>
+                                <div class="spacer_box">
+                                    <div>
+                                        <label>Anthropic API Key</label>
+                                        <input class="ai-api-key-input" type="password" autocomplete="off"
+                                            placeholder="sk-ant-..." style="width: 100%;" />
+                                        <p>Used by the "AI Analyse" button on the Step Response panel. Stored locally on this computer only.</p>
+                                    </div>
+                                </div>
+                            </div>
                             <div class="gui_box grey top-spacer watermark-settings">
                                 <div class="gui_box_titlebar">
                                     <div class="spacer_box_title">Watermark Settings</div>
@@ -3526,6 +3570,8 @@
     <script src="js/graph_stepresponse_plot.js"></script>
     <script src="js/graph_stepresponse_calc.js"></script>
     <script src="js/graph_stepresponse.js"></script>
+    <script src="js/ai_analysis.js"></script>
+    <script src="js/ai_analysis_dialog.js"></script>
     <script src="js/sticks.js"></script>
     <script src="js/csv-exporter.js"></script>
     <script src="js/gui.js"></script>

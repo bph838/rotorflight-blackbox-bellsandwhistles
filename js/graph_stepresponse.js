@@ -116,6 +116,23 @@ var
             $(stepResponseCanvas).off("touchmove", trackTime);
         };
 
+        /* Renders the current step response data at a large fixed resolution (independent of the
+           on-screen panel size) and returns it as a PNG data URL, for sending to the AI Analyse feature. */
+        this.captureImage = function() {
+            var CAPTURE_WIDTH = 1400, CAPTURE_HEIGHT = 800;
+
+            var tempCanvas = document.createElement('canvas');
+            tempCanvas.width = CAPTURE_WIDTH;
+            tempCanvas.height = CAPTURE_HEIGHT;
+
+            var wasFullScreen = StepResponsePlot._isFullScreen;
+            StepResponsePlot._isFullScreen = true;
+            StepResponsePlot._drawGraph(tempCanvas.getContext('2d'));
+            StepResponsePlot._isFullScreen = wasFullScreen;
+
+            return tempCanvas.toDataURL('image/png');
+        };
+
         /* Shift-hover to read off the response time (and per-axis value) under the mouse,
            mirroring the Analyser's shift-hover frequency readout. */
         function trackTime(e) {

@@ -1763,3 +1763,20 @@ dialog h3 {
   max-height: calc(100vh - 250px);
   overflow-y: auto;
 }
+
+.ai-analysis-dialog .ai-analysis-preview {
+    max-width: 100%;
+    display: block;
+    margin: 0 auto 1em;
+    border-radius: 4px;
+}
+
+.ai-analysis-dialog .ai-analysis-result {
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    max-height: 40vh;
+    overflow-y: auto;
+    background-color: #f7f7f7;
+    padding: 1em;
+    border-radius: 4px;
+}

@@ -65,6 +65,8 @@ function UserSettingsDialog(dialog, onLoad, onSave) {
                 eraseBackground                : true,                   // Set to false if you want the graph to draw on top of an existing canvas image
                 spectrumType        : 0,                // By default, frequency Spectrum
                 overdrawSpectrumType: 0,                // By default, show all filters
+                aiApiKey                        : '',                        // Anthropic API key used by the AI Analyse feature
+                aiAnalysisInstructions        : '',                        // Last-used instructions for the AI Analyse feature
                 craft                                : {
                                                                         left  : '15%',        // position from left (as a percentage of width)
                                                                         top   : '25%',  // position from top (as a percentage of height)
@@ -299,6 +301,10 @@ function UserSettingsDialog(dialog, onLoad, onSave) {
                 currentSettings.analyserHanning = $(this).is(":checked");
         });
 
+        $(".ai-api-key-input").on("input", function() {
+                currentSettings.aiApiKey = $(this).val();
+        });
+
     $(".legend-units").click(function() {
         currentSettings.legendUnits = $(this).is(":checked");
     });
@@ -372,6 +378,8 @@ function UserSettingsDialog(dialog, onLoad, onSave) {
                                 // set the toggle switch
                                 $(".analyser-hanning").prop('checked', currentSettings.analyserHanning);
                         }
+
+                        $(".ai-api-key-input").val(currentSettings.aiApiKey || '');
 
                         if(currentSettings.legendUnits!=null) {
                                 // set the toggle switch

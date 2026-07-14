@@ -3,7 +3,13 @@
     "allow": [
       "Bash(node -c js/graph_stepresponse.js)",
       "Bash(node -c js/graph_stepresponse_plot.js)",
-      "Bash(node -c js/graph_stepresponse_calc.js)"
+      "Bash(node -c js/graph_stepresponse_calc.js)",
+      "Bash(awk 'NR==2966,NR==3080' index.html)",
+      "Bash(yarn add *)",
+      "Bash(awk 'NR>=2966 && NR<=3090 && /<\\\\/div>$/{c++} NR>=2966 && NR<=3090{print NR\": \"$0}' index.html)",
+      "Bash(node -c js/ai_analysis.js)",
+      "Bash(node -c js/ai_analysis_dialog.js)",
+      "Bash(node -c js/user_settings_dialog.js)"
     ]
   }
 }
