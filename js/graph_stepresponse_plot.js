@@ -26,6 +26,8 @@ window.StepResponsePlot = window.StepResponsePlot || {
     _cachedCanvas   : null,
     _data           : null,
     _isFullScreen   : false,
+    _showLegend     : false, // Only drawn for exported/captured images (e.g. AI Analyse) - the live view has checkboxes instead
+    _solidBackground: false, // Flat fill instead of a gradient, for exported/captured images
     _sysConfig      : null,
     _axisVisible    : { roll: true, pitch: true, yaw: true },
     _mousePosition  : {
@@ -131,10 +133,60 @@ StepResponsePlot._drawGraph = function(canvasCtx) {
         axisIndex++;
     }
 
+    if (this._showLegend) {
+        this._drawLegend(canvasCtx, WIDTH, HEIGHT);
+    }
+
+    canvasCtx.restore();
+};
+
+StepResponsePlot._drawLegend = function(canvasCtx, WIDTH, HEIGHT) {
+
+    const visibleAxes = Object.keys(STEP_RESPONSE_AXIS_LABELS).filter((axis) => this._axisVisible[axis]);
+
+    if (visibleAxes.length === 0) {
+        return;
+    }
+
+    const ROW_HEIGHT = this._isFullScreen ? 22 : 14;
+    const SWATCH_WIDTH = this._isFullScreen ? 24 : 16;
+    const PADDING = this._isFullScreen ? 10 : 6;
+    const boxHeight = visibleAxes.length * ROW_HEIGHT + PADDING;
+    const boxWidth = this._isFullScreen ? 110 : 70;
+
+    canvasCtx.save();
+
+    canvasCtx.fillStyle = 'rgba(0,0,0,0.55)';
+    canvasCtx.fillRect(4, 4, boxWidth, boxHeight);
+
+    visibleAxes.forEach((axis, i) => {
+        const y = 4 + PADDING / 2 + i * ROW_HEIGHT + ROW_HEIGHT / 2;
+        const color = STEP_RESPONSE_AXIS_COLORS[axis];
+
+        canvasCtx.strokeStyle = color;
+        canvasCtx.lineWidth = 3;
+        canvasCtx.beginPath();
+        canvasCtx.moveTo(4 + PADDING / 2, y);
+        canvasCtx.lineTo(4 + PADDING / 2 + SWATCH_WIDTH, y);
+        canvasCtx.stroke();
+
+        canvasCtx.font = (this._isFullScreen ? this._drawingParams.fontSizeLabelFullscreen : this._drawingParams.fontSizeLabel) + 'pt Verdana, Arial, sans-serif';
+        canvasCtx.fillStyle = 'rgba(255,255,255,0.95)';
+        canvasCtx.textAlign = 'left';
+        canvasCtx.textBaseline = 'middle';
+        canvasCtx.fillText(STEP_RESPONSE_AXIS_LABELS[axis], 4 + PADDING / 2 + SWATCH_WIDTH + 6, y);
+    });
+
     canvasCtx.restore();
 };
 
 StepResponsePlot._drawBackground = function(canvasCtx, WIDTH, HEIGHT) {
+
+    if (this._solidBackground) {
+        canvasCtx.fillStyle = 'rgb(20,20,20)';
+        canvasCtx.fillRect(0, 0, WIDTH, HEIGHT);
+        return;
+    }
 
     const backgroundGradient = canvasCtx.createLinearGradient(0, 0, 0, HEIGHT);
 
@@ -216,7 +268,7 @@ StepResponsePlot._drawAxisResponse = function(canvasCtx, axis, WIDTH, HEIGHT, ax
     const responseLenSamples = axisData.response.length;
 
     canvasCtx.beginPath();
-    canvasCtx.lineWidth = 2;
+    canvasCtx.lineWidth = 3;
     canvasCtx.strokeStyle = color;
 
     for (let n = 0; n < responseLenSamples; n++) {

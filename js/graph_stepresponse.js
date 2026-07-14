@@ -126,9 +126,15 @@ var
             tempCanvas.height = CAPTURE_HEIGHT;
 
             var wasFullScreen = StepResponsePlot._isFullScreen;
+            var wasShowLegend = StepResponsePlot._showLegend;
+            var wasSolidBackground = StepResponsePlot._solidBackground;
             StepResponsePlot._isFullScreen = true;
+            StepResponsePlot._showLegend = true;
+            StepResponsePlot._solidBackground = true;
             StepResponsePlot._drawGraph(tempCanvas.getContext('2d'));
             StepResponsePlot._isFullScreen = wasFullScreen;
+            StepResponsePlot._showLegend = wasShowLegend;
+            StepResponsePlot._solidBackground = wasSolidBackground;
 
             return tempCanvas.toDataURL('image/png');
         };
