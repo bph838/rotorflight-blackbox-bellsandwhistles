@@ -22,6 +22,7 @@ a.disabled {
 @media (min-width: 1400px) {
     .container.main-pane {
         width:90%;
+        
     }
 }
 
@@ -1784,7 +1785,8 @@ dialog h3 {
 }
 
 .ai-analysis-dialog .modal-dialog {
-    width: 960px;
+    width: 80vw;
+    height: 90vh;
 }
 
 .ai-analysis-dialog .ai-analysis-preview {

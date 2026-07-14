@@ -25,11 +25,23 @@ function AIAnalysisDialog(dialog, onSaveInstructions, onResult) {
     var previewElem = $(".ai-analysis-preview", dialog);
     var modelElem = $(".ai-analysis-model", dialog);
     var analyzeButton = $(".ai-analysis-dialog-analyze", dialog);
+    var toggleImageButton = $(".ai-analysis-toggle-image", dialog);
 
     function setBusy(isBusy) {
         loadingElem.toggle(isBusy);
         analyzeButton.prop('disabled', isBusy);
     }
+
+    function showResultUi() {
+        previewElem.addClass('compact').show();
+        toggleImageButton.show().text('Hide graph');
+    }
+
+    toggleImageButton.click(function() {
+        var willShow = !previewElem.is(':visible');
+        previewElem.toggle(willShow);
+        toggleImageButton.text(willShow ? 'Hide graph' : 'Show graph');
+    });
 
     analyzeButton.click(function() {
 
@@ -56,7 +68,7 @@ function AIAnalysisDialog(dialog, onSaveInstructions, onResult) {
         }, function(resultText) {
             setBusy(false);
             resultElem.html(marked.parse(resultText)).show();
-            previewElem.addClass('compact');
+            showResultUi();
             onResult(cacheKey, resultText);
         }, function(errorMessage) {
             setBusy(false);
@@ -80,11 +92,13 @@ function AIAnalysisDialog(dialog, onSaveInstructions, onResult) {
 
         if (cachedResult) {
             resultElem.html(marked.parse(cachedResult)).show();
+            showResultUi();
         } else {
             resultElem.hide().html('');
+            previewElem.removeClass('compact').show();
+            toggleImageButton.hide();
         }
 
-        previewElem.toggleClass('compact', !!cachedResult);
         previewElem.attr('src', imageDataUrl || '');
 
         if (!apiKey) {
