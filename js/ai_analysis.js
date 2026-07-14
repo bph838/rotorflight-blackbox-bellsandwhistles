@@ -69,10 +69,10 @@ AIAnalysis.analyze = function(options, onResult, onError) {
         'to address the user\'s instructions, referencing the actual curve shapes you see (overshoot, ' +
         'settling time, oscillation, delay) for each axis.';
 
-    client.messages.create({
-        model: options.model || 'claude-opus-4-8',
+    var model = options.model || 'claude-opus-4-8';
+    var requestParams = {
+        model: model,
         max_tokens: 4096,
-        thinking: { type: 'adaptive' },
         messages: [{
             role: 'user',
             content: [
@@ -83,7 +83,14 @@ AIAnalysis.analyze = function(options, onResult, onError) {
                 { type: 'text', text: promptText },
             ],
         }],
-    }).then(function(response) {
+    };
+
+    // Adaptive thinking isn't supported on every model (e.g. Haiku 4.5) - only request it where it's valid
+    if (model !== 'claude-haiku-4-5') {
+        requestParams.thinking = { type: 'adaptive' };
+    }
+
+    client.messages.create(requestParams).then(function(response) {
         var text = '';
         for (var i = 0; i < response.content.length; i++) {
             if (response.content[i].type === 'text') {
