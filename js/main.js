@@ -606,6 +606,7 @@ function BlackboxLogViewer() {
                 }
 
         graph = new FlightLogGrapher(flightLog, activeGraphConfig, canvas, stickCanvas, craftWrapper, analyserCanvas, stepResponseCanvas, userSettings);
+        graph.setDrawStepResponse(hasStepResponse); // A fresh grapher instance defaults this off - re-sync it to the persisted toggle state
 
         // Reflect any previously saved axis on/off state onto the toolbar checkboxes
         $(".stepresponse-toggle-axis").each(function() {
