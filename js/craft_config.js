@@ -118,7 +118,14 @@ CraftConfig.parseText = function(text) {
 
         var setMatch = line.match(/^set\s+([\w.\-]+)\s*=\s*(.+)$/i);
         if (setMatch) {
-            settings[setMatch[1].toLowerCase()] = setMatch[2].trim();
+            var setKey = setMatch[1].toLowerCase();
+            var setValue = setMatch[2].trim();
+            settings[setKey] = setValue;
+
+            if (setKey === 'name' && setValue) {
+                craftName = setValue.replace(/^"(.*)"$/, '$1');
+            }
+
             return;
         }
 

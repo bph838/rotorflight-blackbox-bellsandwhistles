@@ -330,6 +330,18 @@ function BlackboxLogViewer() {
             : '-');
     }
 
+    function checkCraftNameMatchesLog() {
+        if (!craftConfig.hasConfig() || !flightLog) return;
+
+        var configCraftName = craftConfig.getCraftName();
+        var logCraftName = flightLog.getSysConfig()['Craft name'];
+
+        if (configCraftName && logCraftName && configCraftName !== logCraftName) {
+            alert("The loaded craft configuration is for \"" + configCraftName +
+                  "\" but this log was recorded on \"" + logCraftName + "\".");
+        }
+    }
+
     function renderLogFileInfo(file) {
         $(".log-filename").text(file.name);
 
@@ -398,6 +410,8 @@ function BlackboxLogViewer() {
      */
     function renderSelectedLogInfo() {
         var sysConfig = flightLog.getSysConfig();
+
+        checkCraftNameMatchesLog();
 
         const logdate = sysConfig['Log start datetime'];
         if (logdate && logdate.startsWith('20')) {
@@ -735,6 +749,7 @@ function BlackboxLogViewer() {
             }
 
             renderLogFileInfo(file);
+            renderCraftConfigStatus();
             currentOffsetCache.log      = file.name; // store the name of the loaded log file
             currentOffsetCache.index    = null;      // and clear the index
 
@@ -1479,9 +1494,15 @@ function BlackboxLogViewer() {
                     aiAnalysisResultCache[cacheKey] = resultText;
                 }),
 
-                craftConfigDialog = new CraftConfigDialog($("#dlgCraftConfig"), craftConfig, renderCraftConfigStatus);
+                craftConfigDialog = new CraftConfigDialog($("#dlgCraftConfig"), craftConfig, function() {
+                    renderCraftConfigStatus();
+                    checkCraftNameMatchesLog();
+                });
 
-        craftConfig.loadFromCache(renderCraftConfigStatus);
+        craftConfig.loadFromCache(function() {
+            renderCraftConfigStatus();
+            checkCraftNameMatchesLog();
+        });
 
         $(".open-craft-config-dialog").click(function(e) {
             e.preventDefault();

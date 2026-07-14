@@ -1391,7 +1391,7 @@ html:not(.has-log) #status-bar {
 }
 
 #status-bar .craft-config-name {
-    font-weight: bold;
+    font-weight: normal;
 }
 
 html:not(.has-config) #status-bar .configuration-file-name {
