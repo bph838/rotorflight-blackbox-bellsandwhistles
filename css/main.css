@@ -878,6 +878,7 @@ html .view-sticks,
 html .view-table,
 html .view-analyser,
 html .view-analyser-sticks,
+html .view-stepresponse,
 html .view-analyser-fullscreen {
      color:black;
 }
@@ -887,6 +888,7 @@ html.has-analyser.isBF .view-analyser,
 html.has-table.isBF .view-table,
 html.has-sticks.isBF .view-sticks,
 html.has-craft.isBF .view-craft,
+html.has-stepresponse.isBF .view-stepresponse,
 html:not(.video-hidden).isBF .view-video {
      color: rgba(158, 100, 0,1);
 }
@@ -896,6 +898,7 @@ html.has-analyser.isRF .view-analyser,
 html.has-table.isRF .view-table,
 html.has-sticks.isRF .view-sticks,
 html.has-craft.isRF .view-craft,
+html.has-stepresponse.isRF .view-stepresponse,
 html:not(.video-hidden).isRF .view-video {
      color: rgba(0, 79, 128,1);
 }
@@ -905,6 +908,7 @@ html.has-analyser.isCF .view-analyser,
 html.has-table.isCF .view-table,
 html.has-sticks.isCF .view-sticks,
 html.has-craft.isCF .view-craft,
+html.has-stepresponse.isCF .view-stepresponse,
 html:not(.video-hidden).isCF .view-video {
      color: rgba(0, 162, 63,1);
 }
@@ -914,6 +918,7 @@ html.has-analyser.isINAV .view-analyser,
 html.has-table.isINAV .view-table,
 html.has-sticks.isINAV .view-sticks,
 html.has-craft.isINAV .view-craft,
+html.has-stepresponse.isINAV .view-stepresponse,
 html:not(.video-hidden).isINAV .view-video {
      color: rgba(8, 80, 172,1.0);
 }

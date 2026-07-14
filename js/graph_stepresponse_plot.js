@@ -4,7 +4,7 @@ const STEP_RESPONSE_MARGIN = 10,
   STEP_RESPONSE_MARGIN_BOTTOM = 18,
   STEP_RESPONSE_MARGIN_LEFT = 28,
   STEP_RESPONSE_Y_MAX = 2.0, // fixed y-axis scale (0 .. 2.0), 1.0 = perfect tracking
-  STEP_RESPONSE_LINEWIDTH = 4, // response line width for the on-screen panel
+  STEP_RESPONSE_LINEWIDTH = 3, // response line width for the on-screen panel
   AILINEWIDTH = 7, // response line width used only for images captured for the AI Analyse feature
   AIFONTSIZE = 16, // label font size (pt) used only for images captured for the AI Analyse feature
   // Wider margins so the larger AIFONTSIZE labels aren't clipped against the capture canvas edges
