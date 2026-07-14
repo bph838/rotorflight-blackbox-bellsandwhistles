@@ -1,6 +1,6 @@
 "use strict";
 
-function FlightLogGrapher(flightLog, graphConfig, canvas, stickCanvas, craftWrapper, analyserCanvas, stepResponseCanvas, options) {
+function FlightLogGrapher(flightLog, graphConfig, canvas, stickCanvas, craftWrapper, analyserCanvas, stepResponseCanvas, options, craftConfig) {
     var
         PID_P = 0,
         PID_I = 1,
@@ -1060,7 +1060,7 @@ function FlightLogGrapher(flightLog, graphConfig, canvas, stickCanvas, craftWrap
     this.refreshLogo();
 
     /* Create the FlightLogAnalyser object */
-        analyser = new FlightLogAnalyser(flightLog, canvas, analyserCanvas);
+        analyser = new FlightLogAnalyser(flightLog, canvas, analyserCanvas, craftConfig);
 
     /* Create the FlightLogStepResponse object */
         stepResponse = new FlightLogStepResponse(flightLog, canvas, stepResponseCanvas);

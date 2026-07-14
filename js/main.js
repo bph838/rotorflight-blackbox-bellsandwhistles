@@ -613,7 +613,7 @@ function BlackboxLogViewer() {
                 userSettings.analyserSampleRate = 1000000 / (flightLog.getSysConfig().looptime * (validate(flightLog.getSysConfig().pid_process_denom,1)) * flightLog.getSysConfig().frameIntervalPDenom / flightLog.getSysConfig().frameIntervalPNum);
                 }
 
-        graph = new FlightLogGrapher(flightLog, activeGraphConfig, canvas, stickCanvas, craftWrapper, analyserCanvas, stepResponseCanvas, userSettings);
+        graph = new FlightLogGrapher(flightLog, activeGraphConfig, canvas, stickCanvas, craftWrapper, analyserCanvas, stepResponseCanvas, userSettings, craftConfig);
         graph.setDrawStepResponse(hasStepResponse); // A fresh grapher instance defaults this off - re-sync it to the persisted toggle state
 
         // Reflect any previously saved axis on/off state onto the toolbar checkboxes

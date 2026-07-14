@@ -12,7 +12,16 @@
       "Bash(node -c js/user_settings_dialog.js)",
       "Bash(node -e \"const m = require\\('marked'\\); console.log\\(typeof m, typeof m.marked, typeof m.parse\\); console.log\\(m.parse ? m.parse\\('## Hi\\\\n**bold**\\\\n- a\\\\n- b'\\) : \\(m.marked ? m.marked\\('## Hi'\\) : m\\('## Hi'\\)\\)\\);\")",
       "WebSearch",
-      "Bash(grep -i '\\\\.js$')"
+      "Bash(grep -i '\\\\.js$')",
+      "WebFetch(domain:rotorflight.org)",
+      "Bash(gh api *)",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:api.github.com)",
+      "WebFetch(domain:grep.app)",
+      "Bash(node -c js/graph_spectrum.js)",
+      "Bash(node -c js/graph_spectrum_plot.js)",
+      "Bash(node verify_rpm_lines.js)"
     ]
   }
 }

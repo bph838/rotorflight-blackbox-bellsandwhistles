@@ -1,6 +1,6 @@
 "use strict";
 
-function FlightLogAnalyser(flightLog, canvas, analyserCanvas) {
+function FlightLogAnalyser(flightLog, canvas, analyserCanvas, craftConfig) {
 
 const
         ANALYSER_LARGE_LEFT_MARGIN    = 10,
@@ -32,7 +32,7 @@ var
 
         var sysConfig = flightLog.getSysConfig();
         GraphSpectrumCalc.initialize(flightLog, sysConfig);
-        GraphSpectrumPlot.initialize(analyserCanvas, sysConfig);
+        GraphSpectrumPlot.initialize(analyserCanvas, sysConfig, craftConfig);
 
         var analyserZoomXElem = $("#analyserZoomX");
         var analyserZoomYElem = $("#analyserZoomY");
@@ -226,13 +226,22 @@ var
 
         // track frequency under mouse
         var lastMouseX = 0,
-            lastMouseY = 0;
+            lastMouseY = 0,
+            lastRpmMouseX = 0,
+            lastRpmMouseY = 0;
 
         function trackFrequency(e, analyser) {
             if(e.shiftKey) {
 
                 // Hide the combo and maximize buttons
                 spectrumToolbarElem.removeClass('non-shift');
+
+                // Clear any RPM marker left over from ctrl-hover so it doesn't overlap
+                if (lastRpmMouseX !== 0 || lastRpmMouseY !== 0) {
+                    lastRpmMouseX = 0;
+                    lastRpmMouseY = 0;
+                    GraphSpectrumPlot.setRpmMousePosition(0, 0);
+                }
 
                 var rect = analyserCanvas.getBoundingClientRect();
                 var mouseX = e.clientX - rect.left;
@@ -241,6 +250,30 @@ var
                     lastMouseX = mouseX;
                     lastMouseY = mouseY;
                     GraphSpectrumPlot.setMousePosition(mouseX, mouseY);
+                    if (analyser) {
+                        analyser.refresh();
+                    }
+                }
+                e.preventDefault();
+            } else if (e.ctrlKey) {
+
+                // Hide the combo and maximize buttons
+                spectrumToolbarElem.addClass('non-shift');
+
+                // Clear any frequency marker left over from shift-hover so it doesn't overlap
+                if (lastMouseX !== 0 || lastMouseY !== 0) {
+                    lastMouseX = 0;
+                    lastMouseY = 0;
+                    GraphSpectrumPlot.setMousePosition(0, 0);
+                }
+
+                var rect = analyserCanvas.getBoundingClientRect();
+                var mouseX = e.clientX - rect.left;
+                var mouseY = e.clientY - rect.top;
+                if (mouseX != lastRpmMouseX || mouseY != lastRpmMouseY) {
+                    lastRpmMouseX = mouseX;
+                    lastRpmMouseY = mouseY;
+                    GraphSpectrumPlot.setRpmMousePosition(mouseX, mouseY);
                     if (analyser) {
                         analyser.refresh();
                     }
