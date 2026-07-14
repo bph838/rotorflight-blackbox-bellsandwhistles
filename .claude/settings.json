@@ -9,7 +9,8 @@
       "Bash(awk 'NR>=2966 && NR<=3090 && /<\\\\/div>$/{c++} NR>=2966 && NR<=3090{print NR\": \"$0}' index.html)",
       "Bash(node -c js/ai_analysis.js)",
       "Bash(node -c js/ai_analysis_dialog.js)",
-      "Bash(node -c js/user_settings_dialog.js)"
+      "Bash(node -c js/user_settings_dialog.js)",
+      "Bash(node -e \"const m = require\\('marked'\\); console.log\\(typeof m, typeof m.marked, typeof m.parse\\); console.log\\(m.parse ? m.parse\\('## Hi\\\\n**bold**\\\\n- a\\\\n- b'\\) : \\(m.marked ? m.marked\\('## Hi'\\) : m\\('## Hi'\\)\\)\\);\")"
     ]
   }
 }

@@ -1,5 +1,7 @@
 "use strict";
 
+var marked = require('marked');
+
 function AIAnalysisDialog(dialog, onSaveInstructions) {
 
     var that = this;
@@ -40,7 +42,7 @@ function AIAnalysisDialog(dialog, onSaveInstructions) {
             return;
         }
 
-        resultElem.hide().text('');
+        resultElem.hide().html('');
         errorElem.hide().text('');
         setBusy(true);
 
@@ -52,7 +54,7 @@ function AIAnalysisDialog(dialog, onSaveInstructions) {
             instructions: instructions,
         }, function(resultText) {
             setBusy(false);
-            resultElem.text(resultText).show();
+            resultElem.html(marked.parse(resultText)).show();
         }, function(errorMessage) {
             setBusy(false);
             errorElem.text(errorMessage).show();
@@ -69,7 +71,7 @@ function AIAnalysisDialog(dialog, onSaveInstructions) {
         modelElem.text('Model: ' + (MODEL_DISPLAY_NAMES[model] || model));
 
         instructionsElem.val(savedInstructions || '');
-        resultElem.hide().text('');
+        resultElem.hide().html('');
         errorElem.hide().text('');
         setBusy(false);
 
