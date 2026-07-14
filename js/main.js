@@ -66,6 +66,8 @@ function BlackboxLogViewer() {
         configuration = null,                                                          // is their an associated dump file ?
         configurationDefaults = new ConfigurationDefaults(prefs),  // configuration defaults
 
+        craftConfig = new CraftConfig(prefs), // Rotorflight CLI dump/diff config, loaded via the Expert "Load Config" feature
+
         // User's video render config:
         videoConfig = {},
 
@@ -320,6 +322,12 @@ function BlackboxLogViewer() {
 
             invalidateGraph();
         }
+    }
+
+    function renderCraftConfigStatus() {
+        $(".craft-config-name").text(craftConfig.hasConfig()
+            ? 'Craft: ' + (craftConfig.getCraftName() || craftConfig.getFileName())
+            : '-');
     }
 
     function renderLogFileInfo(file) {
@@ -1469,7 +1477,17 @@ function BlackboxLogViewer() {
                     prefs.set('userSettings', userSettings);
                 }, function(cacheKey, resultText) {
                     aiAnalysisResultCache[cacheKey] = resultText;
-                });
+                }),
+
+                craftConfigDialog = new CraftConfigDialog($("#dlgCraftConfig"), craftConfig, renderCraftConfigStatus);
+
+        craftConfig.loadFromCache(renderCraftConfigStatus);
+
+        $(".open-craft-config-dialog").click(function(e) {
+            e.preventDefault();
+
+            craftConfigDialog.show();
+        });
 
         $(".open-graph-configuration-dialog").click(function(e) {
             e.preventDefault();

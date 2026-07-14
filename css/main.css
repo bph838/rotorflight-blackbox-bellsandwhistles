@@ -720,14 +720,23 @@ html.has-stepresponse #stepResponse {
 }
 
 .log-field-values td,
-.configuration-file li {
+.configuration-file li,
+.craft-config-list li {
     font-family: monospace;
     font-size: small;
     margin-left: 10px;
 }
 
-.configuration-file li:nth-child(even) {
+.configuration-file li:nth-child(even),
+.craft-config-list li:nth-child(even) {
     background-color: #EBF3F7;
+}
+
+.craft-config-list {
+    height: 300px;
+    overflow-y: scroll;
+    margin-top: 10px;
+    border: 1px solid #ddd;
 }
 
 .log-field-values .raw-value {
@@ -1379,6 +1388,10 @@ html:not(.has-log) #status-bar {
 
 #status-bar .configuration-file-name {
     cursor: pointer;
+}
+
+#status-bar .craft-config-name {
+    font-weight: bold;
 }
 
 html:not(.has-config) #status-bar .configuration-file-name {

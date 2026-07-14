@@ -310,6 +310,9 @@
                         <button type="button" class="btn btn-default ai-analyse-stepresponse" data-toggle="tooltip" title="Send the step response graph to AI for analysis">
                             <span class="glyphicon glyphicon-comment"></span>
                         </button>
+                        <button type="button" class="btn btn-default open-craft-config-dialog" data-toggle="tooltip" title="Load Rotorflight configuration (dump/diff)">
+                            <span class="glyphicon glyphicon-open-file"></span>
+                        </button>
                     </div>
                 </div>
             </li>
@@ -668,6 +671,9 @@
         </div>
         <div>
             <span class="configuration-file-name">-</span>
+        </div>
+        <div>
+            <span class="craft-config-name" title="Loaded Rotorflight configuration">-</span>
         </div>
         <div>
             <span class="viewer-version">-</span>
@@ -3126,6 +3132,46 @@
         </div>
     </div>
 
+    <div class="modal fade craft-config-dialog" id="dlgCraftConfig">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close" data-toggle="tooltip" title="Close the dialog box">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                    <h4 class="modal-title">Rotorflight Configuration</h4>
+                </div>
+                <div class="modal-body">
+                    <input type="file" class="craft-config-file-input" accept=".txt,.log" style="display:none" />
+
+                    <div class="alert alert-danger craft-config-error" style="display:none;"></div>
+
+                    <div class="craft-config-empty">
+                        <p>No Rotorflight configuration is loaded. Load a CLI <code>dump all</code> or <code>diff all</code>
+                            export to make the craft's configuration available across flight logs.</p>
+                        <button type="button" class="btn btn-primary craft-config-choose-file">Choose File&hellip;</button>
+                    </div>
+
+                    <div class="craft-config-details" style="display:none;">
+                        <table class="table">
+                            <tr><td>Craft name</td><td class="craft-config-craft-name"></td></tr>
+                            <tr><td>File</td><td class="craft-config-file-name"></td></tr>
+                            <tr><td>Loaded</td><td class="craft-config-loaded-at"></td></tr>
+                            <tr><td>Settings parsed</td><td class="craft-config-setting-count"></td></tr>
+                        </table>
+                        <input type="text" class="form-control craft-config-filter" placeholder="Enter filter" />
+                        <ul class="list-unstyled craft-config-list"></ul>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal" data-toggle="tooltip" title="Close dialog box">Close</button>
+                    <button type="button" class="btn btn-default craft-config-clear" data-toggle="tooltip" title="Remove the loaded configuration">Clear</button>
+                    <button type="button" class="btn btn-primary craft-config-choose-file" data-toggle="tooltip" title="Load a different configuration file">Load different file&hellip;</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div class="modal fade user-settings-dialog" id="dlgUserSettings">
         <div class="modal-dialog">
             <div class="modal-content">
@@ -3606,6 +3652,8 @@
     <script src="js/flightlog_video_renderer.js"></script>
     <script src="js/graph_config.js"></script>
     <script src="js/configuration.js"></script>
+    <script src="js/craft_config.js"></script>
+    <script src="js/craft_config_dialog.js"></script>
     <script src="js/laptimer.js"></script>
     <script src="js/localization.js"></script>
     <script src="js/default_workspaces.js"></script>
