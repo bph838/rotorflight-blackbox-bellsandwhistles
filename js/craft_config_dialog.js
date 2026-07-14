@@ -77,6 +77,8 @@ function CraftConfigDialog(dialog, craftConfig, onConfigChanged) {
             render();
 
             if (onConfigChanged) onConfigChanged();
+
+            dialog.modal('hide');
         });
     });
 

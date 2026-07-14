@@ -1783,6 +1783,10 @@ dialog h3 {
   overflow-y: auto;
 }
 
+.ai-analysis-dialog .modal-dialog {
+    width: 960px;
+}
+
 .ai-analysis-dialog .ai-analysis-preview {
     max-width: 100%;
     display: block;
