@@ -1184,7 +1184,7 @@ function BlackboxLogViewer() {
             var imageDataUrl = stepResponse.captureImage();
             var configSummary = AIAnalysis.buildConfigSummary(flightLog.getSysConfig());
 
-            aiAnalysisDialog.show(imageDataUrl, configSummary, userSettings.aiApiKey, userSettings.aiAnalysisInstructions);
+            aiAnalysisDialog.show(imageDataUrl, configSummary, userSettings.aiApiKey, userSettings.aiModel, userSettings.aiAnalysisInstructions);
         });
 
         $(".view-zoom-in").click(function() {

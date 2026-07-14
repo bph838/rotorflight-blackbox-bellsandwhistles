@@ -70,7 +70,7 @@ AIAnalysis.analyze = function(options, onResult, onError) {
         'settling time, oscillation, delay) for each axis.';
 
     client.messages.create({
-        model: 'claude-opus-4-8',
+        model: options.model || 'claude-opus-4-8',
         max_tokens: 4096,
         thinking: { type: 'adaptive' },
         messages: [{

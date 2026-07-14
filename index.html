@@ -3094,9 +3094,10 @@
                     <h4 class="modal-title">AI Step Response Analysis</h4>
                 </div>
                 <div class="modal-body">
+                    <p class="ai-analysis-model text-muted"></p>
                     <img class="ai-analysis-preview" alt="Step response graph preview" />
                     <div class="form-group">
-                        <label>Extra Instructions for the AI</label>
+                        <label>Extra instructions for the AI</label>
                         <textarea class="ai-analysis-instructions form-control" rows="3"
                             placeholder="e.g. I want the Yaw to be as fast as possible"></textarea>
                     </div>
@@ -3359,6 +3360,14 @@
                                         <input class="ai-api-key-input" type="password" autocomplete="off"
                                             placeholder="sk-ant-..." style="width: 100%;" />
                                         <p>Used by the "AI Analyse" button on the Step Response panel. Stored locally on this computer only.</p>
+                                    </div>
+                                    <div>
+                                        <label>Model</label>
+                                        <select class="ai-model-select" style="width: 100%;">
+                                            <option value="claude-opus-4-8">Claude Opus 4.8 (most capable, recommended)</option>
+                                            <option value="claude-sonnet-5">Claude Sonnet 5 (faster, cheaper)</option>
+                                            <option value="claude-haiku-4-5">Claude Haiku 4.5 (fastest, cheapest)</option>
+                                        </select>
                                     </div>
                                 </div>
                             </div>

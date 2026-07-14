@@ -66,6 +66,7 @@ function UserSettingsDialog(dialog, onLoad, onSave) {
                 spectrumType        : 0,                // By default, frequency Spectrum
                 overdrawSpectrumType: 0,                // By default, show all filters
                 aiApiKey                        : '',                        // Anthropic API key used by the AI Analyse feature
+                aiModel                        : 'claude-opus-4-8',        // Anthropic model used by the AI Analyse feature
                 aiAnalysisInstructions        : '',                        // Last-used instructions for the AI Analyse feature
                 craft                                : {
                                                                         left  : '15%',        // position from left (as a percentage of width)
@@ -305,6 +306,10 @@ function UserSettingsDialog(dialog, onLoad, onSave) {
                 currentSettings.aiApiKey = $(this).val();
         });
 
+        $(".ai-model-select").on("change", function() {
+                currentSettings.aiModel = $(this).val();
+        });
+
     $(".legend-units").click(function() {
         currentSettings.legendUnits = $(this).is(":checked");
     });
@@ -380,6 +385,7 @@ function UserSettingsDialog(dialog, onLoad, onSave) {
                         }
 
                         $(".ai-api-key-input").val(currentSettings.aiApiKey || '');
+                        $(".ai-model-select").val(currentSettings.aiModel || 'claude-opus-4-8');
 
                         if(currentSettings.legendUnits!=null) {
                                 // set the toggle switch
