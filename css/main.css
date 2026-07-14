@@ -1794,6 +1794,10 @@ dialog h3 {
     border-radius: 4px;
 }
 
+.ai-analysis-dialog .ai-analysis-preview.compact {
+    max-width: 50%;
+}
+
 .ai-analysis-dialog .ai-analysis-result {
     word-wrap: break-word;
     max-height: 40vh;

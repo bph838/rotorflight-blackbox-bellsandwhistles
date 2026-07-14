@@ -56,6 +56,7 @@ function AIAnalysisDialog(dialog, onSaveInstructions, onResult) {
         }, function(resultText) {
             setBusy(false);
             resultElem.html(marked.parse(resultText)).show();
+            previewElem.addClass('compact');
             onResult(cacheKey, resultText);
         }, function(errorMessage) {
             setBusy(false);
@@ -83,6 +84,7 @@ function AIAnalysisDialog(dialog, onSaveInstructions, onResult) {
             resultElem.hide().html('');
         }
 
+        previewElem.toggleClass('compact', !!cachedResult);
         previewElem.attr('src', imageDataUrl || '');
 
         if (!apiKey) {

@@ -128,13 +128,19 @@ var
             var wasFullScreen = StepResponsePlot._isFullScreen;
             var wasShowLegend = StepResponsePlot._showLegend;
             var wasSolidBackground = StepResponsePlot._solidBackground;
+            var wasLineWidth = StepResponsePlot._lineWidth;
+            var wasFontSize = StepResponsePlot._fontSize;
             StepResponsePlot._isFullScreen = true;
             StepResponsePlot._showLegend = true;
             StepResponsePlot._solidBackground = true;
+            StepResponsePlot._lineWidth = AILINEWIDTH;
+            StepResponsePlot._fontSize = AIFONTSIZE;
             StepResponsePlot._drawGraph(tempCanvas.getContext('2d'));
             StepResponsePlot._isFullScreen = wasFullScreen;
             StepResponsePlot._showLegend = wasShowLegend;
             StepResponsePlot._solidBackground = wasSolidBackground;
+            StepResponsePlot._lineWidth = wasLineWidth;
+            StepResponsePlot._fontSize = wasFontSize;
 
             return tempCanvas.toDataURL('image/png');
         };
