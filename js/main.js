@@ -76,6 +76,8 @@ function BlackboxLogViewer() {
         offsetCache = [], // Storage for the offset cache (last 20 files)
         currentOffsetCache = {log:null, index:null, video:null, offset:null},
 
+        aiAnalysisResultCache = {}, // Last AI Analyse result text, keyed per log file + flight index
+
         // JSON array of graph configurations for New Workspaces feature
         lastGraphConfig = null,     // Undo feature - go back to last configuration.
         workspaceGraphConfigs = [], // Workspaces
@@ -1183,8 +1185,10 @@ function BlackboxLogViewer() {
             stepResponse.plot(); // Ensure the step response data has been calculated at least once
             var imageDataUrl = stepResponse.captureImage();
             var configSummary = AIAnalysis.buildConfigSummary(flightLog.getSysConfig());
+            var cacheKey = (currentOffsetCache.log || '') + '#' + flightLog.getLogIndex();
 
-            aiAnalysisDialog.show(imageDataUrl, configSummary, userSettings.aiApiKey, userSettings.aiModel, userSettings.aiAnalysisInstructions);
+            aiAnalysisDialog.show(imageDataUrl, configSummary, userSettings.aiApiKey, userSettings.aiModel,
+                userSettings.aiAnalysisInstructions, cacheKey, aiAnalysisResultCache[cacheKey]);
         });
 
         $(".view-zoom-in").click(function() {
@@ -1462,6 +1466,8 @@ function BlackboxLogViewer() {
                 aiAnalysisDialog = new AIAnalysisDialog($("#dlgAIAnalysis"), function(newInstructions) {
                     userSettings.aiAnalysisInstructions = newInstructions;
                     prefs.set('userSettings', userSettings);
+                }, function(cacheKey, resultText) {
+                    aiAnalysisResultCache[cacheKey] = resultText;
                 });
 
         $(".open-graph-configuration-dialog").click(function(e) {

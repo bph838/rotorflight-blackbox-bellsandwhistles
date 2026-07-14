@@ -2,7 +2,7 @@
 
 var marked = require('marked');
 
-function AIAnalysisDialog(dialog, onSaveInstructions) {
+function AIAnalysisDialog(dialog, onSaveInstructions, onResult) {
 
     var that = this;
 
@@ -16,6 +16,7 @@ function AIAnalysisDialog(dialog, onSaveInstructions) {
     var configSummary = '';
     var apiKey = '';
     var model = 'claude-opus-4-8';
+    var cacheKey = null;
 
     var instructionsElem = $(".ai-analysis-instructions", dialog);
     var resultElem = $(".ai-analysis-result", dialog);
@@ -55,25 +56,32 @@ function AIAnalysisDialog(dialog, onSaveInstructions) {
         }, function(resultText) {
             setBusy(false);
             resultElem.html(marked.parse(resultText)).show();
+            onResult(cacheKey, resultText);
         }, function(errorMessage) {
             setBusy(false);
             errorElem.text(errorMessage).show();
         });
     });
 
-    this.show = function(newImageDataUrl, newConfigSummary, newApiKey, newModel, savedInstructions) {
+    this.show = function(newImageDataUrl, newConfigSummary, newApiKey, newModel, savedInstructions, newCacheKey, cachedResult) {
 
         imageDataUrl = newImageDataUrl;
         configSummary = newConfigSummary;
         apiKey = newApiKey;
         model = newModel || 'claude-opus-4-8';
+        cacheKey = newCacheKey;
 
         modelElem.text('Model: ' + (MODEL_DISPLAY_NAMES[model] || model));
 
         instructionsElem.val(savedInstructions || '');
-        resultElem.hide().html('');
         errorElem.hide().text('');
         setBusy(false);
+
+        if (cachedResult) {
+            resultElem.html(marked.parse(cachedResult)).show();
+        } else {
+            resultElem.hide().html('');
+        }
 
         previewElem.attr('src', imageDataUrl || '');
 
