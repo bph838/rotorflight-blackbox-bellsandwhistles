@@ -21,7 +21,13 @@
       "WebFetch(domain:grep.app)",
       "Bash(node -c js/graph_spectrum.js)",
       "Bash(node -c js/graph_spectrum_plot.js)",
-      "Bash(node verify_rpm_lines.js)"
+      "Bash(node verify_rpm_lines.js)",
+      "Bash(gh release *)",
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)",
+      "Bash(git tag *)",
+      "Bash(git push *)",
+      "Bash(gh release create v0.1.2 release/rotorflight-blackbox-installer_0.1.2_win64.exe --title v0.1.2 --notes ' *)"
     ]
   }
 }
