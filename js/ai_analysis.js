@@ -67,7 +67,12 @@ AIAnalysis.analyze = function(options, onResult, onError) {
         'User instructions: ' + instructions + '\n\n' +
         'Analyse the attached step response graph and suggest specific, actionable PID and filter changes ' +
         'to address the user\'s instructions, referencing the actual curve shapes you see (overshoot, ' +
-        'settling time, oscillation, delay) for each axis.';
+        'settling time, oscillation, delay) for each axis.\n\n' +
+        'For every change you recommend, clearly state which setting to change in the Rotorflight Configurator ' +
+        'and where to find it, using this format: the exact field name as it appears in the Configurator UI, ' +
+        'the tab/page it lives on (e.g. PID Tuning, Filters, Rates), the current value (from the configuration ' +
+        'above), and the new value you recommend. Do not just describe the change conceptually - name the ' +
+        'actual Configurator setting for the user to go and edit.';
 
     var model = options.model || 'claude-opus-4-8';
     var requestParams = {
