@@ -14,7 +14,7 @@ const
 var StepResponseCalc = StepResponseCalc || {
     _timeRange : {
             in: 0,
-            out: STEP_RESPONSE_MAX_LENGTH
+            out: 0
     },
     _blackBoxRate : 0,
     _flightLog : null,
@@ -114,14 +114,21 @@ StepResponseCalc._emptyResult = function(timeAxis, responseLenSamples) {
     };
 };
 
+// Computes the averaged step response for a single axis. See the file header for the
+// overall approach; this is the per-window windowing/FFT/Wiener-deconvolution/averaging
+// pipeline (steps 1-7) run for one of roll/pitch/yaw.
 StepResponseCalc._calculateAxis = function(axisIndex) {
 
+    // responseLenSamples/timeAxis describe the fixed-length output curve (0..STEP_RESPONSE_LEN_SEC)
+    // that every window's step response gets trimmed/averaged down to.
     var responseLenSamples = Math.round(STEP_RESPONSE_LEN_SEC * this._blackBoxRate);
     var timeAxis = new Float64Array(responseLenSamples);
     for (var t = 0; t < responseLenSamples; t++) {
         timeAxis[t] = t / this._blackBoxRate;
     }
 
+    // Each analysis window is FRAME_LEN_SEC long; it must be at least as long as the step
+    // response we want to keep from it.
     var frameLen = Math.round(STEP_RESPONSE_FRAME_LEN_SEC * this._blackBoxRate);
 
     if (frameLen < responseLenSamples || frameLen < 2) {
@@ -134,6 +141,8 @@ StepResponseCalc._calculateAxis = function(axisIndex) {
         return this._emptyResult(timeAxis, responseLenSamples);
     }
 
+    // Windows step forward by a fraction of their own length (SUPERPOS-way overlap), so
+    // consecutive windows share most of their samples rather than being independent slices.
     var stride = Math.max(1, Math.round(frameLen / STEP_RESPONSE_SUPERPOS));
 
     var forwardFft = new FFT.complex(frameLen, false);
@@ -195,9 +204,19 @@ StepResponseCalc._calculateAxis = function(axisIndex) {
         // inverse transform is unnormalized (verified empirically), so divide by frameLen.
         var stepResponse = new Float64Array(responseLenSamples);
         var acc = 0;
+        var windowIsFinite = true;
         for (var n = 0; n < responseLenSamples; n++) {
             acc += impulse[2 * n] / frameLen;
             stepResponse[n] = acc;
+            if (!isFinite(acc)) windowIsFinite = false;
+        }
+
+        // A dropped/corrupted frame (NaN or Infinity in the raw setpoint or gyro data for this
+        // window) poisons the whole window's FFT output. Since the FFT is a transform over the
+        // entire window, this isn't recoverable per-sample - discard the window rather than
+        // letting a single bad window contaminate the averaged result for every other window.
+        if (!windowIsFinite) {
+            continue;
         }
 
         windowResponses.push(stepResponse);
@@ -247,9 +266,12 @@ StepResponseCalc._calculateAxis = function(axisIndex) {
     }
 
     if (accepted.length === 0) {
+        // Rejection removed every window (e.g. a very noisy log) - fall back to using them
+        // all rather than reporting no data.
         accepted = windowResponses;
     }
 
+    // Final pointwise average of the accepted (outlier-filtered) per-window step responses.
     var finalResponse = new Float64Array(responseLenSamples);
     for (var w = 0; w < accepted.length; w++) {
         for (var n = 0; n < responseLenSamples; n++) {
