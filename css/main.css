@@ -1887,6 +1887,27 @@ dialog h3 {
     background-color: #f2f2f2;
 }
 
+.ai-analysis-dialog .ai-analysis-turn + .ai-analysis-turn {
+    margin-top: 1em;
+    padding-top: 1em;
+    border-top: 1px solid rgba(0, 0, 0, 0.12);
+}
+
+.ai-analysis-dialog .ai-analysis-turn-user {
+    white-space: pre-wrap;
+    font-style: italic;
+}
+
+.ai-analysis-dialog .ai-analysis-turn-user::before {
+    content: "You: ";
+    font-style: normal;
+    font-weight: bold;
+}
+
+.ai-analysis-dialog .ai-analysis-followup-send {
+    margin-top: 0.5em;
+}
+
 .ai-analysis-loading {
     display: flex;
     align-items: center;

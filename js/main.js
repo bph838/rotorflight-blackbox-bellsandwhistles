@@ -78,7 +78,7 @@ function BlackboxLogViewer() {
         offsetCache = [], // Storage for the offset cache (last 20 files)
         currentOffsetCache = {log:null, index:null, video:null, offset:null},
 
-        aiAnalysisResultCache = {}, // Last AI Analyse result text, keyed per log file + flight index
+        aiAnalysisResultCache = {}, // Last AI Analyse conversation (message history), keyed per log file + flight index
 
         // JSON array of graph configurations for New Workspaces feature
         lastGraphConfig = null,     // Undo feature - go back to last configuration.
@@ -1490,8 +1490,8 @@ function BlackboxLogViewer() {
                 aiAnalysisDialog = new AIAnalysisDialog($("#dlgAIAnalysis"), function(newInstructions) {
                     userSettings.aiAnalysisInstructions = newInstructions;
                     prefs.set('userSettings', userSettings);
-                }, function(cacheKey, resultText) {
-                    aiAnalysisResultCache[cacheKey] = resultText;
+                }, function(cacheKey, conversationMessages) {
+                    aiAnalysisResultCache[cacheKey] = conversationMessages;
                 }),
 
                 craftConfigDialog = new CraftConfigDialog($("#dlgCraftConfig"), craftConfig, function() {
