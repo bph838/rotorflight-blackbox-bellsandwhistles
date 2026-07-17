@@ -102,7 +102,7 @@ AIAnalysis.analyze = function(options, onResult, onError) {
                 text += response.content[i].text;
             }
         }
-        onResult(text || '(No text response received)');
+        onResult(text || '(No text response received)', response.usage);
     }).catch(function(error) {
         onError((error && error.message) ? error.message : String(error));
     });

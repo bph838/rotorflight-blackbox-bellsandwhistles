@@ -3114,14 +3114,18 @@
                 </div>
                 <div class="modal-body">
                     <p class="ai-analysis-model text-muted"></p>
+                    <p class="ai-analysis-cost text-muted" style="display:none;"></p>
                     <button type="button" class="btn btn-default btn-xs ai-analysis-toggle-image" style="display:none;">Hide graph</button>
                     <img class="ai-analysis-preview" alt="Step response graph preview" />
                     <div class="form-group">
                         <label>Extra instructions for the AI</label>
                         <textarea class="ai-analysis-instructions form-control" rows="3"
-                            placeholder="e.g. I want the tail to be as fast as possible"></textarea>
+                            placeholder="e.g. make the process smoother"></textarea>
                     </div>
-                    <div class="ai-analysis-loading" style="display:none;">Analyzing, please wait&hellip;</div>
+                    <div class="ai-analysis-loading" style="display:none;">
+                        <span class="ai-analysis-spinner" aria-hidden="true"></span>
+                        <span>Analyzing, please wait&hellip;</span>
+                    </div>
                     <div class="alert alert-danger ai-analysis-error" style="display:none;"></div>
                     <div class="ai-analysis-result" style="display:none;"></div>
                 </div>
