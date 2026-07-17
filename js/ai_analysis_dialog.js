@@ -35,6 +35,8 @@ function AIAnalysisDialog(dialog, onSaveInstructions, onResult) {
   var costElem = $(".ai-analysis-cost", dialog);
   var analyzeButton = $(".ai-analysis-dialog-analyze", dialog);
   var toggleImageButton = $(".ai-analysis-toggle-image", dialog);
+  var copyTextButton = $(".ai-analysis-copy-text", dialog);
+  var copyImageButton = $(".ai-analysis-copy-image", dialog);
   var followupElem = $(".ai-analysis-followup", dialog);
   var followupInput = $(".ai-analysis-followup-input", dialog);
   var followupButton = $(".ai-analysis-followup-send", dialog);
@@ -74,6 +76,11 @@ function AIAnalysisDialog(dialog, onSaveInstructions, onResult) {
     followupToggleButton.hide();
     followupElem.show();
     followupInput.focus();
+  }
+
+  function closeFollowup() {
+    followupElem.hide();
+    followupToggleButton.show();
   }
 
   // Renders the initial analysis plus any follow-up question/answer turns from conversationMessages.
@@ -117,6 +124,58 @@ function AIAnalysisDialog(dialog, onSaveInstructions, onResult) {
     var willShow = !previewElem.is(":visible");
     previewElem.toggle(willShow);
     toggleImageButton.text(willShow ? "Hide graph" : "Show graph");
+  });
+
+  function flashCopied(button, originalText) {
+    button.text("Copied!");
+    setTimeout(function () {
+      button.text(originalText);
+    }, 1500);
+  }
+
+  copyTextButton.click(function () {
+    copyTextButton.tooltip("hide");
+
+    var promptText = AIAnalysis.buildPromptText({
+      configSummary: configSummary,
+      instructions: instructionsElem.val(),
+    });
+
+    navigator.clipboard
+      .writeText(promptText)
+      .then(function () {
+        flashCopied(copyTextButton, "Copy prompt");
+      })
+      .catch(function (error) {
+        errorElem
+          .text("Could not copy prompt to clipboard: " + ((error && error.message) || error))
+          .show();
+      });
+  });
+
+  copyImageButton.click(function () {
+    copyImageButton.tooltip("hide");
+
+    if (!imageDataUrl) {
+      errorElem.text("No step response graph is available to copy.").show();
+      return;
+    }
+
+    fetch(imageDataUrl)
+      .then(function (response) {
+        return response.blob();
+      })
+      .then(function (imageBlob) {
+        return navigator.clipboard.write([new ClipboardItem({ "image/png": imageBlob })]);
+      })
+      .then(function () {
+        flashCopied(copyImageButton, "Copy image");
+      })
+      .catch(function (error) {
+        errorElem
+          .text("Could not copy image to clipboard: " + ((error && error.message) || error))
+          .show();
+      });
   });
 
   followupToggleButton.click(function () {
@@ -189,6 +248,7 @@ function AIAnalysisDialog(dialog, onSaveInstructions, onResult) {
         conversationMessages = updatedMessages;
         followupInput.val("");
         renderConversation();
+        closeFollowup();
         showCost(model, usage);
         onResult(cacheKey, conversationMessages);
       },
@@ -234,12 +294,7 @@ function AIAnalysisDialog(dialog, onSaveInstructions, onResult) {
     if (conversationMessages && conversationMessages.length > 1) {
       renderConversation();
       showResultUi();
-      if (conversationMessages.length > 2) {
-        // Conversation already has follow-up turns - keep the input open rather than re-collapsing it
-        openFollowup();
-      } else {
-        followupElem.hide();
-      }
+      followupElem.hide();
     } else {
       resultElem.hide().html("");
       previewElem.removeClass("compact").show();

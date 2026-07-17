@@ -37,16 +37,15 @@ function createClient(apiKey) {
 }
 
 /**
- * Builds the initial user message (image + tuning prompt) that kicks off an analysis conversation.
+ * Builds the tuning prompt text sent alongside the step response image. Exposed so the UI can
+ * also let the user copy the exact prompt (e.g. to paste into another AI chat).
  *
- * options: { imageDataUrl, configSummary, instructions }
+ * options: { configSummary, instructions }
  */
-function buildInitialUserMessage(options) {
-    var base64Data = options.imageDataUrl.replace(/^data:image\/\w+;base64,/, '');
-
+AIAnalysis.buildPromptText = function(options) {
     var instructions = (options.instructions || '').trim() || '(No specific instructions given - provide general tuning suggestions.)';
 
-    var promptText =
+    return (
         'You are helping tune the PID controller of an RC helicopter flight controller running Rotorflight ' +
         '(forked from Betaflight). Attached is a step response graph generated from a blackbox log, showing ' +
         'setpoint-vs-gyro tracking (Roll in red, Pitch in green, Yaw in blue) for the 0-500ms period after a ' +
@@ -62,7 +61,17 @@ function buildInitialUserMessage(options) {
         'above), and the new value you recommend. Do not just describe the change conceptually - name the ' +
         'actual Configurator setting for the user to go and edit.\n\n' +
         'The user may ask follow-up questions about this analysis afterwards, so keep track of the reasoning ' +
-        'behind your suggestions in case you need to refer back to it.';
+        'behind your suggestions in case you need to refer back to it.'
+    );
+};
+
+/**
+ * Builds the initial user message (image + tuning prompt) that kicks off an analysis conversation.
+ *
+ * options: { imageDataUrl, configSummary, instructions }
+ */
+function buildInitialUserMessage(options) {
+    var base64Data = options.imageDataUrl.replace(/^data:image\/\w+;base64,/, '');
 
     return {
         role: 'user',
@@ -71,7 +80,7 @@ function buildInitialUserMessage(options) {
                 type: 'image',
                 source: { type: 'base64', media_type: 'image/png', data: base64Data },
             },
-            { type: 'text', text: promptText },
+            { type: 'text', text: AIAnalysis.buildPromptText(options) },
         ],
     };
 }

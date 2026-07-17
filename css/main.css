@@ -1817,6 +1817,27 @@ dialog h3 {
     flex: 0 0 auto;
 }
 
+.ai-analysis-dialog .ai-analysis-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1em;
+}
+
+.ai-analysis-dialog .ai-analysis-status {
+    margin: 0;
+}
+
+.ai-analysis-dialog .ai-analysis-cost {
+    margin-left: 1em;
+}
+
+.ai-analysis-dialog .ai-analysis-copy-buttons {
+    display: flex;
+    gap: 0.4em;
+    flex: 0 0 auto;
+}
+
 .ai-analysis-dialog .ai-analysis-preview {
     max-width: 50%;
     display: block;

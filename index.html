@@ -3113,9 +3113,17 @@
                     <h4 class="modal-title">AI Step Response Analysis</h4>
                 </div>
                 <div class="modal-body">
-                    <p class="ai-analysis-model text-muted"></p>
-                    <p class="ai-analysis-cost text-muted" style="display:none;"></p>
-                    <button type="button" class="btn btn-default btn-xs ai-analysis-toggle-image" style="display:none;">Hide graph</button>
+                    <div class="ai-analysis-header">
+                        <p class="ai-analysis-status text-muted">
+                            <span class="ai-analysis-model"></span>
+                            <span class="ai-analysis-cost" style="display:none;"></span>
+                        </p>
+                        <div class="ai-analysis-copy-buttons">
+                            <button type="button" class="btn btn-default btn-xs ai-analysis-toggle-image" style="display:none;">Hide graph</button>
+                            <button type="button" class="btn btn-default btn-xs ai-analysis-copy-text" data-toggle="tooltip" title="Copy the prompt text to the clipboard, to paste elsewhere">Copy prompt</button>
+                            <button type="button" class="btn btn-default btn-xs ai-analysis-copy-image" data-toggle="tooltip" title="Copy the step response image to the clipboard, to paste elsewhere">Copy image</button>
+                        </div>
+                    </div>
                     <img class="ai-analysis-preview" alt="Step response graph preview" />
                     <div class="form-group">
                         <label>Extra instructions for the AI</label>
@@ -3128,7 +3136,6 @@
                     </div>
                     <div class="alert alert-danger ai-analysis-error" style="display:none;"></div>
                     <div class="ai-analysis-result" style="display:none;"></div>
-                    <button type="button" class="btn btn-default btn-xs ai-analysis-followup-toggle" style="display:none;">Ask a follow-up question</button>
                     <div class="ai-analysis-followup form-group" style="display:none;">
                         <label>Ask a follow-up question</label>
                         <textarea class="ai-analysis-followup-input form-control" rows="2"
@@ -3137,6 +3144,7 @@
                     </div>
                 </div>
                 <div class="modal-footer">
+                    <button type="button" class="btn btn-default btn-xs ai-analysis-followup-toggle pull-left" style="display:none;">Ask a follow-up question</button>
                     <button type="button" class="btn btn-default" data-dismiss="modal" data-toggle="tooltip" title="Close dialog box">Close</button>
                     <button type="button" class="btn btn-primary ai-analysis-dialog-analyze" data-toggle="tooltip" title="Send the graph to the AI for analysis">Analyze</button>
                 </div>
