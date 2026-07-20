@@ -122,6 +122,10 @@ AITuningSession.loadFromPath = function(filePath, onDone, onError) {
 /**
  * Formats an ISO timestamp for display in the session sidebar entry list.
  */
+function isSameLocalDay(a, b) {
+    return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
+}
+
 AITuningSession.formatEntryLabel = function(timestampIso) {
     var date = new Date(timestampIso);
 
@@ -129,8 +133,19 @@ AITuningSession.formatEntryLabel = function(timestampIso) {
         return timestampIso || "";
     }
 
-    return date.getFullYear() + "-" + pad2(date.getMonth() + 1) + "-" + pad2(date.getDate()) +
-        " " + pad2(date.getHours()) + ":" + pad2(date.getMinutes());
+    var time = pad2(date.getHours()) + ":" + pad2(date.getMinutes());
+    var now = new Date();
+
+    if (isSameLocalDay(date, now)) {
+        return "Today " + time;
+    }
+
+    var yesterday = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1);
+    if (isSameLocalDay(date, yesterday)) {
+        return "Yesterday " + time;
+    }
+
+    return date.getFullYear() + "-" + pad2(date.getMonth() + 1) + "-" + pad2(date.getDate()) + " " + time;
 };
 
 /**
