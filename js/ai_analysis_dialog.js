@@ -219,6 +219,25 @@ function AIAnalysisDialog(dialog, onSaveInstructions, onResult) {
     readonlyNoteElem.hide().text("");
   }
 
+  // Recovers the step response image from an entry's stored conversation (the image lives in
+  // conversationMessages[0]'s content, since it has to be there to be resent as history) rather than
+  // from a separately-stored copy. Falls back to entry.imageDataUrl for session files saved by an
+  // older version of this app that duplicated the image into a top-level field.
+  function extractEntryImageDataUrl(entry) {
+    var firstMessage = entry.conversationMessages && entry.conversationMessages[0];
+    var blocks = firstMessage && firstMessage.content;
+
+    if (Array.isArray(blocks)) {
+      for (var i = 0; i < blocks.length; i++) {
+        if (blocks[i].type === "image") {
+          return "data:" + blocks[i].source.media_type + ";base64," + blocks[i].source.data;
+        }
+      }
+    }
+
+    return entry.imageDataUrl || null;
+  }
+
   // Switches the dialog to display a specific (already-analyzed) session entry. The most recent
   // entry stays interactive (follow-ups allowed); everything earlier is strictly read-only.
   function selectEntry(index) {
@@ -227,7 +246,7 @@ function AIAnalysisDialog(dialog, onSaveInstructions, onResult) {
     var isLast = index === entries.length - 1;
 
     selectedEntryIndex = index;
-    imageDataUrl = entry.imageDataUrl;
+    imageDataUrl = extractEntryImageDataUrl(entry);
     configSummary = entry.configSummary;
     conversationMessages = entry.conversationMessages;
     model = entry.model || model;
@@ -516,7 +535,8 @@ function AIAnalysisDialog(dialog, onSaveInstructions, onResult) {
           currentSession.entries.push({
             id: AITuningSession.makeEntryId(currentSession, timestamp),
             timestamp: timestamp,
-            imageDataUrl: imageDataUrl,
+            // The image already lives in conversationMessages[0]'s content (it has to, so it can be
+            // resent as history) - don't also duplicate the ~100-200KB base64 blob up here.
             configSummary: configSummary,
             instructions: instructions,
             model: model,
