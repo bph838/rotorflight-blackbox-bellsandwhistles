@@ -366,7 +366,9 @@ function AIAnalysisDialog(dialog, onSaveInstructions, onResult) {
     followupInput.val("");
 
     analyzeButton.hide();
-    instructionsGroupElem.show();
+    // No point showing an empty read-only instructions box - hide it so there's more room for the
+    // actual data (graph/conversation) when this entry didn't have any extra instructions.
+    instructionsGroupElem.toggle(!!(entry.instructions && entry.instructions.trim()));
     previewElem.attr("src", imageDataUrl || "").addClass("compact").show();
     toggleImageButton.show().text("Hide graph");
 
@@ -652,7 +654,6 @@ function AIAnalysisDialog(dialog, onSaveInstructions, onResult) {
     analyzeButton.tooltip("hide");
 
     var instructions = instructionsElem.val();
-    onSaveInstructions(instructions);
 
     if (!imageDataUrl) {
       errorElem.text("No step response graph is available to analyze.").show();
@@ -796,15 +797,16 @@ function AIAnalysisDialog(dialog, onSaveInstructions, onResult) {
 
     // .show() is always called with a freshly-captured graph, so this is by definition the new
     // pending slot - remember it separately so selectPendingSlot() can get back to it later even
-    // after the live vars above get overwritten by browsing a read-only historical entry.
+    // after the live vars above get overwritten by browsing a read-only historical entry. Extra
+    // instructions are intentionally never remembered between analyses - always start blank.
     pendingImageDataUrl = imageDataUrl;
     pendingConfigSummary = configSummary;
-    pendingInstructions = savedInstructions || "";
+    pendingInstructions = "";
     pendingModel = model;
 
     modelElem.text("Model: " + (MODEL_DISPLAY_NAMES[model] || model));
 
-    instructionsElem.val(savedInstructions || "");
+    instructionsElem.val("");
     errorElem.hide().text("");
     costElem.hide().text("");
     followupInput.val("");

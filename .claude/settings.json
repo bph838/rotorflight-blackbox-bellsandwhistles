@@ -43,7 +43,8 @@
       "Bash(echo \"--- exit: $? ---\")",
       "Read(//d/Users/benja/OneDrive/Documents2/Ben Drone/Rotorflight/M4/PID Work 16/**)",
       "Bash(node --check \"f:/Repos/Repo Drone/rotorflight-blackbox-full/js/ai_analysis_dialog.js\")",
-      "Bash(node --check \"f:/Repos/Repo Drone/rotorflight-blackbox-full/js/ai_tuning_session.js\")"
+      "Bash(node --check \"f:/Repos/Repo Drone/rotorflight-blackbox-full/js/ai_tuning_session.js\")",
+      "Bash(node --check \"f:/Repos/Repo Drone/rotorflight-blackbox-full/js/ai_analysis.js\")"
     ]
   }
 }
