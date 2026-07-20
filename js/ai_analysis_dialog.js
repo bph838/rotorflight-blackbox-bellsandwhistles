@@ -45,6 +45,11 @@ function AIAnalysisDialog(dialog, onSaveInstructions, onResult) {
   // this index are the ones actually produced in this run of the app; entries before it were loaded
   // from disk and must stay read-only forever, even if one of them happens to be the last entry.
   var sessionBaselineEntryCount = 0;
+  // True whenever the in-memory session has analysis that hasn't made it to disk yet (a fresh Analyze
+  // or follow-up happened since the session was created/opened/last saved). Drives the "unsaved
+  // changes" prompt when the dialog is closed.
+  var sessionDirty = false;
+  var allowNextModalHide = false;
 
   var instructionsElem = $(".ai-analysis-instructions", dialog);
   var instructionsGroupElem = instructionsElem.closest(".form-group");
@@ -78,6 +83,10 @@ function AIAnalysisDialog(dialog, onSaveInstructions, onResult) {
   var createCancelButton = $(".ai-session-create-cancel", dialog);
   var openFileInput = $(".ai-session-open-input", dialog);
   var saveFileInput = $(".ai-session-save-input", dialog);
+  var unsavedWarningElem = $(".ai-session-unsaved-warning", dialog);
+  var unsavedSaveButton = $(".ai-session-unsaved-save", dialog);
+  var unsavedDiscardButton = $(".ai-session-unsaved-discard", dialog);
+  var unsavedCancelButton = $(".ai-session-unsaved-cancel", dialog);
 
   function setBusy(isBusy) {
     loadingElem.toggle(isBusy);
@@ -380,6 +389,7 @@ function AIAnalysisDialog(dialog, onSaveInstructions, onResult) {
           currentSession = newSession;
           currentSessionFilePath = filePath;
           sessionBaselineEntryCount = 0; // Brand new session - nothing loaded from disk yet.
+          sessionDirty = false;
           resetToPendingUi();
           renderSessionSidebar();
         },
@@ -415,6 +425,7 @@ function AIAnalysisDialog(dialog, onSaveInstructions, onResult) {
         // Every entry already in the file was finalized in a previous run - none of them are ever
         // eligible to become "Current" here, even if one of them is last in the array.
         sessionBaselineEntryCount = loadedSession.entries.length;
+        sessionDirty = false;
         resetToPendingUi();
         renderSessionSidebar();
       },
@@ -424,7 +435,10 @@ function AIAnalysisDialog(dialog, onSaveInstructions, onResult) {
     );
   });
 
-  sessionToolbarSaveButton.click(function () {
+  // Saves currentSession to currentSessionFilePath (silently), or - in the unlikely case no path is
+  // known yet - prompts for one via the native Save dialog first. Shared by the toolbar Save button
+  // and the "unsaved changes" prompt shown when closing the dialog.
+  function saveCurrentSession(onSaved, onError) {
     if (!currentSession) {
       return;
     }
@@ -435,14 +449,17 @@ function AIAnalysisDialog(dialog, onSaveInstructions, onResult) {
         filePath,
         function () {
           currentSessionFilePath = filePath;
-          var originalText = sessionToolbarSaveButton.text();
-          sessionToolbarSaveButton.text("Saved!");
-          setTimeout(function () {
-            sessionToolbarSaveButton.text(originalText);
-          }, 1500);
+          sessionDirty = false;
+          if (onSaved) {
+            onSaved();
+          }
         },
         function (message) {
-          errorElem.text("Could not save the session file: " + message).show();
+          var text = "Could not save the session file: " + message;
+          errorElem.text(text).show();
+          if (onError) {
+            onError(text);
+          }
         },
       );
     }
@@ -467,6 +484,49 @@ function AIAnalysisDialog(dialog, onSaveInstructions, onResult) {
       }
     });
     saveFileInput.click();
+  }
+
+  sessionToolbarSaveButton.click(function () {
+    saveCurrentSession(function () {
+      var originalText = sessionToolbarSaveButton.text();
+      sessionToolbarSaveButton.text("Saved!");
+      setTimeout(function () {
+        sessionToolbarSaveButton.text(originalText);
+      }, 1500);
+    });
+  });
+
+  // Intercept the dialog closing (the header "x" and footer "Close" buttons both use Bootstrap's
+  // data-dismiss="modal", which fires this event before actually hiding) to warn about unsaved
+  // analysis rather than silently losing it.
+  dialog.on("hide.bs.modal", function (event) {
+    if (allowNextModalHide) {
+      allowNextModalHide = false;
+      return;
+    }
+
+    if (currentSession && sessionDirty) {
+      event.preventDefault();
+      unsavedWarningElem.show();
+    }
+  });
+
+  unsavedCancelButton.click(function () {
+    unsavedWarningElem.hide();
+  });
+
+  unsavedDiscardButton.click(function () {
+    unsavedWarningElem.hide();
+    allowNextModalHide = true;
+    dialog.modal("hide");
+  });
+
+  unsavedSaveButton.click(function () {
+    saveCurrentSession(function () {
+      unsavedWarningElem.hide();
+      allowNextModalHide = true;
+      dialog.modal("hide");
+    });
   });
 
   // --- Existing analysis / follow-up / copy behavior ----------------------------------------
@@ -589,6 +649,7 @@ function AIAnalysisDialog(dialog, onSaveInstructions, onResult) {
             conversationMessages: conversationMessages,
           });
           selectedEntryIndex = currentSession.entries.length - 1;
+          sessionDirty = true;
           analyzeButton.hide();
           instructionsElem.prop("readonly", true);
           readonlyNoteElem.hide().text("");
@@ -637,6 +698,7 @@ function AIAnalysisDialog(dialog, onSaveInstructions, onResult) {
 
         if (currentSession && selectedEntryIndex !== null) {
           currentSession.entries[selectedEntryIndex].conversationMessages = conversationMessages;
+          sessionDirty = true;
         }
 
         followupInput.val("");
@@ -691,6 +753,7 @@ function AIAnalysisDialog(dialog, onSaveInstructions, onResult) {
     errorElem.hide().text("");
     costElem.hide().text("");
     followupInput.val("");
+    unsavedWarningElem.hide();
     setBusy(false);
 
     if (currentSession) {

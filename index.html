@@ -3127,6 +3127,14 @@
                         <div class="ai-session-entry-list"></div>
                     </div>
                     <div class="ai-session-main">
+                        <div class="alert alert-warning ai-session-unsaved-warning" style="display:none;">
+                            <p>This tuning session has analysis that hasn&rsquo;t been saved yet.</p>
+                            <div class="ai-session-unsaved-buttons">
+                                <button type="button" class="btn btn-default btn-sm ai-session-unsaved-cancel">Cancel</button>
+                                <button type="button" class="btn btn-default btn-sm ai-session-unsaved-discard">Close without saving</button>
+                                <button type="button" class="btn btn-primary btn-sm ai-session-unsaved-save">Save and close</button>
+                            </div>
+                        </div>
                         <div class="ai-session-create-form" style="display:none;">
                             <div class="form-group">
                                 <label>Session name</label>

@@ -1919,6 +1919,15 @@ dialog h3 {
     text-align: right;
 }
 
+.ai-analysis-dialog .ai-session-unsaved-warning {
+    margin-bottom: 1em;
+}
+
+.ai-analysis-dialog .ai-session-unsaved-buttons {
+    text-align: right;
+    margin-top: 0.5em;
+}
+
 .ai-analysis-dialog .ai-analysis-header {
     display: flex;
     align-items: center;
