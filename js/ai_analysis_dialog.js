@@ -34,6 +34,17 @@ function AIAnalysisDialog(dialog, onSaveInstructions, onResult) {
   var currentSession = null;
   var currentSessionFilePath = null;
   var selectedEntryIndex = null;
+  // The most recently captured (not-yet-analyzed) graph/config/instructions/model, kept separately
+  // from the live working vars above so that browsing a read-only historical entry (which overwrites
+  // those live vars for display) doesn't lose it - selectPendingSlot() below restores from these.
+  var pendingImageDataUrl = null;
+  var pendingConfigSummary = "";
+  var pendingInstructions = "";
+  var pendingModel = "claude-opus-4-8";
+  // Number of entries that already existed when the session was created/opened. Entries at or after
+  // this index are the ones actually produced in this run of the app; entries before it were loaded
+  // from disk and must stay read-only forever, even if one of them happens to be the last entry.
+  var sessionBaselineEntryCount = 0;
 
   var instructionsElem = $(".ai-analysis-instructions", dialog);
   var instructionsGroupElem = instructionsElem.closest(".form-group");
@@ -170,17 +181,17 @@ function AIAnalysisDialog(dialog, onSaveInstructions, onResult) {
     for (var i = 0; i < entries.length; i++) {
       (function (index) {
         var entry = entries[index];
-        var isLast = index === entries.length - 1;
+        var isCurrent = isEntryInteractiveCurrent(index);
 
         var item = $('<div class="ai-session-entry"></div>')
           .toggleClass("active", selectedEntryIndex === index)
           .append(
             $('<span class="ai-session-entry-label"></span>').text(
-              AITuningSession.formatEntryLabel(entry.timestamp) + (isLast ? " (Current)" : ""),
+              AITuningSession.formatEntryLabel(entry.timestamp) + (isCurrent ? " (Current)" : ""),
             ),
           );
 
-        if (!isLast) {
+        if (!isCurrent) {
           item.append($('<span class="ai-session-entry-readonly-tag"></span>').text("Read-only"));
         }
 
@@ -192,13 +203,44 @@ function AIAnalysisDialog(dialog, onSaveInstructions, onResult) {
       })(i);
     }
 
-    if (selectedEntryIndex === null) {
-      entryListElem.append(
-        $('<div class="ai-session-entry active"></div>').append(
-          $('<span class="ai-session-entry-label"></span>').text("Current (not yet analyzed)"),
-        ),
-      );
+    // The pending "ready to analyze" slot stays in the list for as long as nothing has actually been
+    // analyzed yet in this run of the app - it must not disappear just because the user is browsing a
+    // different (read-only) entry, only once a real new entry takes its place.
+    if (entries.length === sessionBaselineEntryCount) {
+      var pendingItem = $('<div class="ai-session-entry"></div>')
+        .toggleClass("active", selectedEntryIndex === null)
+        .append($('<span class="ai-session-entry-label"></span>').text("Current (not yet analyzed)"));
+
+      pendingItem.click(function () {
+        selectPendingSlot();
+      });
+
+      entryListElem.append(pendingItem);
     }
+  }
+
+  // Switches back to the pending/not-yet-analyzed slot after the user has been browsing a read-only
+  // historical entry, restoring the graph/config/instructions/model that were actually captured for
+  // analysis (selectEntry() below overwrites the live working vars to display history, so they can't
+  // be trusted to still hold the pending capture).
+  function selectPendingSlot() {
+    selectedEntryIndex = null;
+    imageDataUrl = pendingImageDataUrl;
+    configSummary = pendingConfigSummary;
+    model = pendingModel;
+
+    instructionsElem.val(pendingInstructions);
+    modelElem.text("Model: " + (MODEL_DISPLAY_NAMES[model] || model));
+    previewElem.attr("src", imageDataUrl || "");
+
+    resetToPendingUi();
+    renderSessionSidebar();
+  }
+
+  // True only for the single entry that was actually produced in this run of the app (not loaded from
+  // a session file) and is still the newest one - the only entry that can take follow-up questions.
+  function isEntryInteractiveCurrent(index) {
+    return index === currentSession.entries.length - 1 && index >= sessionBaselineEntryCount;
   }
 
   // Resets the dialog to the "pending" state: no entry selected, ready for a fresh Analyze.
@@ -243,7 +285,7 @@ function AIAnalysisDialog(dialog, onSaveInstructions, onResult) {
   function selectEntry(index) {
     var entries = currentSession.entries;
     var entry = entries[index];
-    var isLast = index === entries.length - 1;
+    var isCurrent = isEntryInteractiveCurrent(index);
 
     selectedEntryIndex = index;
     imageDataUrl = extractEntryImageDataUrl(entry);
@@ -267,7 +309,7 @@ function AIAnalysisDialog(dialog, onSaveInstructions, onResult) {
     renderConversation();
     resultElem.show();
 
-    if (isLast) {
+    if (isCurrent) {
       readonlyNoteElem.hide().text("");
       followupElem.hide();
       followupToggleButton.toggle(!!(conversationMessages && conversationMessages.length > 1));
@@ -337,6 +379,7 @@ function AIAnalysisDialog(dialog, onSaveInstructions, onResult) {
         function () {
           currentSession = newSession;
           currentSessionFilePath = filePath;
+          sessionBaselineEntryCount = 0; // Brand new session - nothing loaded from disk yet.
           resetToPendingUi();
           renderSessionSidebar();
         },
@@ -369,6 +412,9 @@ function AIAnalysisDialog(dialog, onSaveInstructions, onResult) {
       function (loadedSession) {
         currentSession = loadedSession;
         currentSessionFilePath = filePath;
+        // Every entry already in the file was finalized in a previous run - none of them are ever
+        // eligible to become "Current" here, even if one of them is last in the array.
+        sessionBaselineEntryCount = loadedSession.entries.length;
         resetToPendingUi();
         renderSessionSidebar();
       },
@@ -630,6 +676,14 @@ function AIAnalysisDialog(dialog, onSaveInstructions, onResult) {
     model = newModel || "claude-opus-4-8";
     cacheKey = newCacheKey;
     craftName = newCraftName || "";
+
+    // .show() is always called with a freshly-captured graph, so this is by definition the new
+    // pending slot - remember it separately so selectPendingSlot() can get back to it later even
+    // after the live vars above get overwritten by browsing a read-only historical entry.
+    pendingImageDataUrl = imageDataUrl;
+    pendingConfigSummary = configSummary;
+    pendingInstructions = savedInstructions || "";
+    pendingModel = model;
 
     modelElem.text("Model: " + (MODEL_DISPLAY_NAMES[model] || model));
 
