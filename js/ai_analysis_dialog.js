@@ -303,8 +303,8 @@ function AIAnalysisDialog(dialog, onSaveInstructions, onResult) {
 
     analyzeButton.hide();
     instructionsGroupElem.show();
-    previewElem.attr("src", imageDataUrl || "").removeClass("compact").show();
-    toggleImageButton.hide();
+    previewElem.attr("src", imageDataUrl || "").addClass("compact").show();
+    toggleImageButton.show().text("Hide graph");
 
     renderConversation();
     resultElem.show();
