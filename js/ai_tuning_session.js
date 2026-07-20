@@ -55,7 +55,7 @@ AITuningSession.create = function(sessionName, tuningGoal, craftName) {
         tuningGoal: tuningGoal || "",
         craftName: craftName || "",
         createdDate: createdDate,
-        entries: [],
+        entries: [], // each entry may also carry a costUsd, accumulated across its initial analyze + follow-ups
     };
 };
 

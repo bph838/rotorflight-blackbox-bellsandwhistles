@@ -3115,7 +3115,14 @@
                         <button type="button" class="btn btn-default btn-xs ai-session-new" data-toggle="tooltip" title="Start a new tuning session file, tracking every analysis run against this craft from here on">Create new tuning session</button>
                         <button type="button" class="btn btn-default btn-xs ai-session-open" data-toggle="tooltip" title="Open a previously saved tuning session file">Open tuning session</button>
                         <button type="button" class="btn btn-default btn-xs ai-session-save" data-toggle="tooltip" title="Save the current tuning session to disk" disabled>Save current session</button>
-                        <span class="ai-session-status text-muted">No tuning session open</span>
+                        <button type="button" class="btn btn-default btn-xs ai-session-details-toggle" data-toggle="tooltip" title="Show tuning goal and estimated AI cost for this session" style="display:none;">
+                            <span class="glyphicon glyphicon-cog" aria-hidden="true"></span>
+                        </button>
+                        <span class="ai-session-status text-muted">No tuning session open</span>                        
+                    </div>
+                    <div class="ai-session-details-panel" style="display:none;">
+                        <p class="ai-session-details-goal"></p>
+                        <p class="ai-session-details-total-cost"></p>
                     </div>
                 </div>
                 <div class="modal-body">

@@ -87,6 +87,10 @@ function AIAnalysisDialog(dialog, onSaveInstructions, onResult) {
   var unsavedSaveButton = $(".ai-session-unsaved-save", dialog);
   var unsavedDiscardButton = $(".ai-session-unsaved-discard", dialog);
   var unsavedCancelButton = $(".ai-session-unsaved-cancel", dialog);
+  var detailsToggleButton = $(".ai-session-details-toggle", dialog);
+  var detailsPanelElem = $(".ai-session-details-panel", dialog);
+  var detailsGoalElem = $(".ai-session-details-goal", dialog);
+  var detailsTotalCostElem = $(".ai-session-details-total-cost", dialog);
 
   function setBusy(isBusy) {
     loadingElem.toggle(isBusy);
@@ -95,20 +99,41 @@ function AIAnalysisDialog(dialog, onSaveInstructions, onResult) {
     followupInput.prop("disabled", isBusy);
   }
 
-  function showCost(usedModel, usage) {
+  function computeCost(usedModel, usage) {
     var pricing = MODEL_PRICING[usedModel];
     if (!pricing || !usage) {
-      costElem.hide().text("");
-      return;
+      return null;
     }
     var inputTokens = (usage.input_tokens || 0) + (usage.cache_creation_input_tokens || 0);
     var cacheReadTokens = usage.cache_read_input_tokens || 0;
     var outputTokens = usage.output_tokens || 0;
-    var cost =
+    return (
       (inputTokens / 1e6) * pricing[0] +
       (cacheReadTokens / 1e6) * pricing[0] * 0.1 +
-      (outputTokens / 1e6) * pricing[1];
-    costElem.text("Estimated cost: $" + cost.toFixed(4)).show();
+      (outputTokens / 1e6) * pricing[1]
+    );
+  }
+
+  function displayCost(cost) {
+    if (cost === null) {
+      costElem.hide().text("");
+    } else {
+      costElem.text("Estimated cost: $" + cost.toFixed(4)).show();
+    }
+  }
+
+  // Shows the cost of the call that just finished, and - when it belongs to a session entry -
+  // accumulates it onto that entry (initial analyze + any follow-ups) so the same figure keeps
+  // showing whenever that entry is viewed later, current or read-only, not just right after the call.
+  function showCost(usedModel, usage, entryForCost) {
+    var cost = computeCost(usedModel, usage);
+    displayCost(cost);
+
+    if (cost !== null && entryForCost) {
+      entryForCost.costUsd = (entryForCost.costUsd || 0) + cost;
+      sessionDirty = true;
+      renderSessionDetails();
+    }
   }
 
   function showResultUi() {
@@ -175,15 +200,16 @@ function AIAnalysisDialog(dialog, onSaveInstructions, onResult) {
       sidebarElem.hide();
       sessionStatusElem.text("No tuning session open");
       sessionToolbarSaveButton.prop("disabled", true);
+      detailsToggleButton.hide();
+      detailsPanelElem.hide();
       return;
     }
 
     sidebarElem.show();
     sessionToolbarSaveButton.prop("disabled", false);
-    sessionStatusElem.text(
-      "Session: " + currentSession.sessionName +
-      (currentSession.tuningGoal ? " — " + currentSession.tuningGoal : ""),
-    );
+    sessionStatusElem.text("Session: " + currentSession.sessionName);
+    detailsToggleButton.show();
+    renderSessionDetails();
 
     var entries = currentSession.entries;
 
@@ -228,6 +254,31 @@ function AIAnalysisDialog(dialog, onSaveInstructions, onResult) {
     }
   }
 
+  // Refreshes the tuning goal / cost breakdown shown under the cog button. Safe to call whether or
+  // not the panel is currently open - it just keeps the content ready for whenever it's toggled open.
+  function renderSessionDetails() {
+    if (!currentSession) {
+      return;
+    }
+
+    detailsGoalElem.text(
+      currentSession.tuningGoal ? "Tuning goal: " + currentSession.tuningGoal : "No tuning goal set.",
+    );
+
+    var total = 0;
+    var entries = currentSession.entries;
+    for (var i = 0; i < entries.length; i++) {
+      total += entries[i].costUsd || 0;
+    }
+
+    detailsTotalCostElem.text("Total estimated cost: $" + total.toFixed(4));
+  }
+
+  detailsToggleButton.click(function () {
+    detailsToggleButton.tooltip("hide");
+    detailsPanelElem.toggle();
+  });
+
   // Switches back to the pending/not-yet-analyzed slot after the user has been browsing a read-only
   // historical entry, restoring the graph/config/instructions/model that were actually captured for
   // analysis (selectEntry() below overwrites the live working vars to display history, so they can't
@@ -241,6 +292,7 @@ function AIAnalysisDialog(dialog, onSaveInstructions, onResult) {
     instructionsElem.val(pendingInstructions);
     modelElem.text("Model: " + (MODEL_DISPLAY_NAMES[model] || model));
     previewElem.attr("src", imageDataUrl || "");
+    displayCost(null);
 
     resetToPendingUi();
     renderSessionSidebar();
@@ -307,7 +359,10 @@ function AIAnalysisDialog(dialog, onSaveInstructions, onResult) {
     modelElem.text("Model: " + (MODEL_DISPLAY_NAMES[entry.model] || entry.model));
 
     errorElem.hide().text("");
-    costElem.hide().text("");
+    // Show this entry's own accumulated cost (initial analyze + any follow-ups it's had), not just
+    // transiently right after a call - it should stay visible however the entry was reached, current
+    // or read-only. Older entries saved before cost tracking existed simply have nothing to show.
+    displayCost(typeof entry.costUsd === "number" ? entry.costUsd : null);
     followupInput.val("");
 
     analyzeButton.hide();
@@ -657,7 +712,7 @@ function AIAnalysisDialog(dialog, onSaveInstructions, onResult) {
 
         renderConversation();
         showResultUi();
-        showCost(model, usage);
+        showCost(model, usage, currentSession ? currentSession.entries[currentSession.entries.length - 1] : null);
         renderSessionSidebar();
         onResult(cacheKey, conversationMessages);
       },
@@ -704,7 +759,7 @@ function AIAnalysisDialog(dialog, onSaveInstructions, onResult) {
         followupInput.val("");
         renderConversation();
         closeFollowup();
-        showCost(model, usage);
+        showCost(model, usage, currentSession && selectedEntryIndex !== null ? currentSession.entries[selectedEntryIndex] : null);
         onResult(cacheKey, conversationMessages);
       },
       function (errorMessage) {
