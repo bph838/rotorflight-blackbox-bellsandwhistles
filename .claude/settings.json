@@ -27,7 +27,20 @@
       "Bash(git commit -m ' *)",
       "Bash(git tag *)",
       "Bash(git push *)",
-      "Bash(gh release create v0.1.2 release/rotorflight-blackbox-installer_0.1.2_win64.exe --title v0.1.2 --notes ' *)"
+      "Bash(gh release create v0.1.2 release/rotorflight-blackbox-installer_0.1.2_win64.exe --title v0.1.2 --notes ' *)",
+      "Bash(node -e \"console.log\\(require\\('crypto'\\).createHash\\('md5'\\).update\\('test'\\).digest\\('hex'\\)\\)\")",
+      "Bash(node -e ' *)",
+      "PowerShell(Get-Process | Where-Object { $_.ProcessName -match 'rotorflight' } | Select-Object Id, ProcessName, MainWindowTitle, Responding, StartTime | Format-Table -AutoSize)",
+      "Bash(node \"C:\\\\Users\\\\benja\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\f--Repos-Repo-Drone-rotorflight-blackbox-full\\\\7eefc6a2-1ce1-4aaf-a3ea-10e786ec9428\\\\scratchpad\\\\cdp_client.js\")",
+      "Bash(node \"C:\\\\Users\\\\benja\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\f--Repos-Repo-Drone-rotorflight-blackbox-full\\\\7eefc6a2-1ce1-4aaf-a3ea-10e786ec9428\\\\scratchpad\\\\cdp_client2.js\")",
+      "PowerShell(Get-Process | Where-Object { $_.ProcessName -match 'rotorflight' } | Select-Object Id, MainWindowTitle | Format-Table -AutoSize)",
+      "PowerShell(Get-WinEvent -FilterHashtable @{LogName='Application'; ProviderName='Application Error'; StartTime=\\(Get-Date\\).AddMinutes\\(-15\\)} -ErrorAction SilentlyContinue | Where-Object { $_.Message -match 'rotorflight' } | Select-Object -First 5 TimeCreated, Message | Format-List)",
+      "Bash(node \"C:\\\\Users\\\\benja\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\f--Repos-Repo-Drone-rotorflight-blackbox-full\\\\7eefc6a2-1ce1-4aaf-a3ea-10e786ec9428\\\\scratchpad\\\\cdp_client3.js\")",
+      "Bash(powershell.exe -NoProfile -Command 'Get-Process | Where-Object { $_.ProcessName -match '\\\\''rotorflight'\\\\'' } | Stop-Process -Force -ErrorAction SilentlyContinue')",
+      "Bash(\"./debug/rotorflight-blackbox/win64/rotorflight-blackbox.exe\" --remote-debugging-port=9333)",
+      "Bash(echo \"--- node script exit: $? ---\")",
+      "Bash(node \"C:\\\\Users\\\\benja\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\f--Repos-Repo-Drone-rotorflight-blackbox-full\\\\7eefc6a2-1ce1-4aaf-a3ea-10e786ec9428\\\\scratchpad\\\\cdp_client4.js\")",
+      "Bash(echo \"--- exit: $? ---\")"
     ]
   }
 }

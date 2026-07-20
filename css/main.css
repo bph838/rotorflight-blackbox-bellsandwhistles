@@ -1804,17 +1804,119 @@ dialog h3 {
 .ai-analysis-dialog .modal-body {
     flex: 1 1 auto;
     min-height: 0;
+    display: flex;
+    flex-direction: row;
+    padding: 0;
+}
+
+.ai-analysis-dialog .modal-footer {
+    flex: 0 0 auto;
+}
+
+.ai-analysis-dialog .ai-session-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 0.5em;
+    margin-top: 0.5em;
+}
+
+.ai-analysis-dialog .ai-session-status {
+    margin-left: 0.5em;
+    font-style: italic;
+}
+
+.ai-analysis-dialog .ai-session-sidebar {
+    flex: 0 0 260px;
+    width: 260px;
+    min-width: 0;
+    border-right: 1px solid #ddd;
+    background-color: #fafafa;
     overflow-y: auto;
     display: flex;
     flex-direction: column;
 }
 
-.ai-analysis-dialog .modal-body > * {
+.ai-analysis-dialog .ai-session-sidebar.collapsed {
+    flex: 0 0 2.2em;
+    width: 2.2em;
+    overflow: hidden;
+}
+
+.ai-analysis-dialog .ai-session-sidebar.collapsed .ai-session-sidebar-header span,
+.ai-analysis-dialog .ai-session-sidebar.collapsed .ai-session-entry-list {
+    display: none;
+}
+
+.ai-analysis-dialog .ai-session-sidebar-header {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.5em 0.7em;
+    border-bottom: 1px solid #ddd;
+    font-weight: bold;
+    font-size: 0.9em;
+}
+
+.ai-analysis-dialog .ai-session-entry-list {
+    flex: 1 1 auto;
+    overflow-y: auto;
+    padding: 0.3em;
+}
+
+.ai-analysis-dialog .ai-session-entry {
+    padding: 0.5em 0.6em;
+    margin-bottom: 0.3em;
+    border-radius: 4px;
+    cursor: pointer;
+    background-color: #fff;
+    border: 1px solid #e2e2e2;
+    font-size: 0.85em;
+}
+
+.ai-analysis-dialog .ai-session-entry:hover {
+    border-color: #999;
+}
+
+.ai-analysis-dialog .ai-session-entry.active {
+    border-color: #337ab7;
+    background-color: #eaf3fb;
+}
+
+.ai-analysis-dialog .ai-session-entry-label {
+    font-weight: bold;
+    display: block;
+}
+
+.ai-analysis-dialog .ai-session-entry-readonly-tag {
+    color: #888;
+    font-size: 0.9em;
+}
+
+.ai-analysis-dialog .ai-session-main {
+    flex: 1 1 auto;
+    min-width: 0;
+    min-height: 0;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    padding: 15px;
+}
+
+.ai-analysis-dialog .ai-session-main > * {
     flex: 0 0 auto;
 }
 
-.ai-analysis-dialog .modal-footer {
-    flex: 0 0 auto;
+.ai-analysis-dialog .ai-session-create-form {
+    background-color: #f7f7f7;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 1em;
+    margin-bottom: 1em;
+}
+
+.ai-analysis-dialog .ai-session-create-buttons {
+    text-align: right;
 }
 
 .ai-analysis-dialog .ai-analysis-header {

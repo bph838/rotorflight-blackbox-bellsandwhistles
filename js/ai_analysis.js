@@ -40,12 +40,24 @@ function createClient(apiKey) {
  * Builds the tuning prompt text sent alongside the step response image. Exposed so the UI can
  * also let the user copy the exact prompt (e.g. to paste into another AI chat).
  *
- * options: { configSummary, instructions }
+ * options: { configSummary, instructions, sessionContext: { sessionName, tuningGoal, iterationNumber } }
  */
 AIAnalysis.buildPromptText = function(options) {
     var instructions = (options.instructions || '').trim() || '(No specific instructions given - provide general tuning suggestions.)';
+    var sessionPreamble = '';
+
+    if (options.sessionContext) {
+        var ctx = options.sessionContext;
+        sessionPreamble =
+            'This is iteration ' + ctx.iterationNumber + ' of an ongoing PID tuning session named "' + ctx.sessionName +
+            '", with the overall tuning goal: "' + ctx.tuningGoal + '". Earlier messages above contain the step response ' +
+            'graph(s), configuration and your own previous analysis/recommendations from the earlier iteration(s) of this ' +
+            'same session. Use that history to track what has already been tried and how the tracking changed as a result, ' +
+            'rather than repeating suggestions that were already applied unless they still need further adjustment.\n\n';
+    }
 
     return (
+        sessionPreamble +
         'You are helping tune the PID controller of an RC helicopter flight controller running Rotorflight ' +
         '(forked from Betaflight). Attached is a step response graph generated from a blackbox log, showing ' +
         'setpoint-vs-gyro tracking (Roll in red, Pitch in green, Yaw in blue) for the 0-500ms period after a ' +
@@ -112,7 +124,10 @@ function sendMessages(options, messages, onResult, onError) {
         requestParams.thinking = { type: 'adaptive' };
     }
 
-    client.messages.create(requestParams).then(function(response) {
+    // client.beta.messages is used (rather than client.messages) because cache_control breakpoints
+    // (see AITuningSession.buildHistoryMessages) are only supported on the beta messages resource in
+    // this SDK version - it accepts the same params/response shape otherwise.
+    client.beta.messages.create(requestParams).then(function(response) {
         var text = '';
         for (var i = 0; i < response.content.length; i++) {
             if (response.content[i].type === 'text') {
@@ -131,9 +146,14 @@ function sendMessages(options, messages, onResult, onError) {
 /**
  * Starts a new analysis conversation from the step response image, config summary and user instructions.
  *
- * options: { apiKey, model, imageDataUrl, configSummary, instructions }
+ * options: { apiKey, model, imageDataUrl, configSummary, instructions, historyMessages, sessionContext }
+ * `historyMessages`, when part of an active tuning session, is the prior entries' conversation history
+ * (see AITuningSession.buildHistoryMessages) prepended so the AI has the whole tuning session as context
+ * for this request only - it is NOT included in the returned `messages`, so callers can keep storing only
+ * this entry's own conversation as a new session entry (prepending it again every time the whole session's
+ * history is rebuilt would otherwise duplicate it).
  * onResult(resultText, usage, messages) - `messages` should be kept and passed back into AIAnalysis.ask()
- * for follow-up questions.
+ * for follow-up questions on this entry.
  */
 AIAnalysis.analyze = function(options, onResult, onError) {
 
@@ -142,13 +162,22 @@ AIAnalysis.analyze = function(options, onResult, onError) {
         return;
     }
 
-    sendMessages(options, [buildInitialUserMessage(options)], onResult, onError);
+    var historyMessages = options.historyMessages || [];
+
+    sendMessages(options, historyMessages.concat([buildInitialUserMessage(options)]), function(text, usage, updatedMessages) {
+        onResult(text, usage, updatedMessages.slice(historyMessages.length));
+    }, onError);
 };
 
 /**
  * Continues an existing analysis conversation with a follow-up question.
  *
- * options: { apiKey, model, messages, question }
+ * options: { apiKey, model, messages, question, historyMessages }
+ * `messages` is this entry's own conversation so far (NOT including any other session entries).
+ * `historyMessages`, when part of an active tuning session, is prepended ahead of `messages` for this
+ * request only - it is NOT included in the returned `messages`, so callers can keep storing only this
+ * entry's own conversation (see AIAnalysis.analyze for why: storing the resolved history back onto an
+ * entry would duplicate it next time the whole session's history is rebuilt).
  * onResult(resultText, usage, messages) - pass the updated `messages` back in for the next follow-up.
  */
 AIAnalysis.ask = function(options, onResult, onError) {
@@ -164,6 +193,10 @@ AIAnalysis.ask = function(options, onResult, onError) {
         return;
     }
 
+    var historyMessages = options.historyMessages || [];
     var messages = (options.messages || []).concat([{ role: 'user', content: question }]);
-    sendMessages(options, messages, onResult, onError);
+
+    sendMessages(options, historyMessages.concat(messages), function(text, usage, updatedMessages) {
+        onResult(text, usage, updatedMessages.slice(historyMessages.length));
+    }, onError);
 };
