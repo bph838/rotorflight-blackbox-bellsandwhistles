@@ -49,8 +49,8 @@ AIAnalysis.buildPromptText = function(options) {
     if (options.sessionContext) {
         var ctx = options.sessionContext;
         sessionPreamble =
-            'This is iteration ' + ctx.iterationNumber + ' of an ongoing PID tuning session named "' + ctx.sessionName +
-            '", with the overall tuning goal: "' + ctx.tuningGoal + '". Earlier messages above contain the step response ' +
+            'This is iteration ' + ctx.iterationNumber + ' of an ongoing PID tuning session, '
+            'with the overall tuning goal: "' + ctx.tuningGoal + '". Earlier messages above contain the step response ' +
             'graph(s), configuration and your own previous analysis/recommendations from the earlier iteration(s) of this ' +
             'same session. Use that history to track what has already been tried and how the tracking changed as a result, ' +
             'rather than repeating suggestions that were already applied unless they still need further adjustment.\n\n';

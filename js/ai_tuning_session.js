@@ -45,14 +45,17 @@ AITuningSession.buildFilename = function(sessionName, craftName, date) {
 /**
  * Creates a brand new, empty tuning session ready to have entries added to it.
  */
+var DEFAULT_TUNING_GOAL = "I want help tuning the PID settings on my RC helicopter to improve flight performance.";
+
 AITuningSession.create = function(sessionName, tuningGoal, craftName) {
     var createdDate = new Date().toISOString();
+    var trimmedGoal = (tuningGoal || "").trim();
 
     return {
         formatVersion: SESSION_FORMAT_VERSION,
         sessionId: md5((sessionName || "") + "|" + createdDate),
         sessionName: sessionName || "",
-        tuningGoal: tuningGoal || "",
+        tuningGoal: trimmedGoal || DEFAULT_TUNING_GOAL,
         craftName: craftName || "",
         createdDate: createdDate,
         entries: [], // each entry may also carry a costUsd, accumulated across its initial analyze + follow-ups
