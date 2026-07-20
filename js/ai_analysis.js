@@ -72,6 +72,8 @@ AIAnalysis.buildPromptText = function(options) {
         'the tab/page it lives on (e.g. PID Tuning, Filters, Rates), the current value (from the configuration ' +
         'above), and the new value you recommend. Do not just describe the change conceptually - name the ' +
         'actual Configurator setting for the user to go and edit.\n\n' +
+        'Present any PID gain changes grouped by axis in this order: Roll, then Pitch, then Yaw, and within ' +
+        'each axis give the gains in this order: P, I, D.\n\n' +
         'The user may ask follow-up questions about this analysis afterwards, so keep track of the reasoning ' +
         'behind your suggestions in case you need to refer back to it.'
     );
