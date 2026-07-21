@@ -537,6 +537,7 @@ function AIAnalysisDialog(dialog, onSaveInstructions, onResult) {
         }
 
         renderSessionSidebar();
+        autoSaveIfDirty();
       },
       function (message) {
         errorElem.text("Could not open session file: " + message).show();
@@ -604,6 +605,26 @@ function AIAnalysisDialog(dialog, onSaveInstructions, onResult) {
       }, 1500);
     });
   });
+
+  // The "Save current session" button is hidden - every change that touches the session (a fresh
+  // analysis, a follow-up, the cost each adds) now saves itself immediately, so there's nothing left
+  // for the user to remember to click. Only called once per user action, after all of that action's
+  // mutations (e.g. both the new entry and its cost) have been applied, so it's a single write, not one
+  // per mutation. If it fails, sessionDirty is left true by saveCurrentSession() so the "unsaved
+  // changes" prompt on close still catches it.
+  function autoSaveIfDirty() {
+    if (!currentSession || !sessionDirty) {
+      return;
+    }
+
+    saveCurrentSession(function () {
+      var originalText = sessionStatusElem.text();
+      sessionStatusElem.text(originalText + " (saved)");
+      setTimeout(function () {
+        sessionStatusElem.text(originalText);
+      }, 1500);
+    });
+  }
 
   // Intercept the dialog closing (the header "x" and footer "Close" buttons both use Bootstrap's
   // data-dismiss="modal", which fires this event before actually hiding) to warn about unsaved
@@ -768,6 +789,7 @@ function AIAnalysisDialog(dialog, onSaveInstructions, onResult) {
         showResultUi();
         showCost(model, usage, currentSession ? currentSession.entries[currentSession.entries.length - 1] : null);
         renderSessionSidebar();
+        autoSaveIfDirty();
         onResult(cacheKey, conversationMessages);
       },
       function (errorMessage) {
@@ -814,6 +836,7 @@ function AIAnalysisDialog(dialog, onSaveInstructions, onResult) {
         renderConversation();
         closeFollowup();
         showCost(model, usage, currentSession && selectedEntryIndex !== null ? currentSession.entries[selectedEntryIndex] : null);
+        autoSaveIfDirty();
         onResult(cacheKey, conversationMessages);
       },
       function (errorMessage) {
