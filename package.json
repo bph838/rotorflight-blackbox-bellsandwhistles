@@ -7,6 +7,7 @@
   "chromium-args": "--disable-features=nw2",
   "default_locale": "en",
   "scripts": {
+    "set node":"nvm use 16",
     "start": "gulp debug",
     "gulp": "gulp",
     "release": "gulp release",
