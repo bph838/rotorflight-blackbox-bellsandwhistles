@@ -70,8 +70,7 @@ function AIAnalysisDialog(dialog, onSaveInstructions, onResult) {
   var followupInput = $(".ai-analysis-followup-input", dialog);
   var followupButton = $(".ai-analysis-followup-send", dialog);
   var followupToggleButton = $(".ai-analysis-followup-toggle", dialog);
-  var readonlyNoteElem = $(".ai-analysis-readonly-note", dialog);
-
+  
   var sessionToolbarNewButton = $(".ai-session-new", dialog);
   var sessionToolbarOpenButton = $(".ai-session-open", dialog);
   var sessionToolbarSaveButton = $(".ai-session-save", dialog);
@@ -390,7 +389,6 @@ function AIAnalysisDialog(dialog, onSaveInstructions, onResult) {
     analyzeButton.show();
     followupElem.hide();
     followupToggleButton.hide();
-    readonlyNoteElem.hide().text("");
   }
 
   // Recovers the step response image from an entry's stored conversation (the image lives in
@@ -446,17 +444,10 @@ function AIAnalysisDialog(dialog, onSaveInstructions, onResult) {
     renderConversation();
     resultElem.show();
 
-    if (isCurrent) {
-      readonlyNoteElem.hide().text("");
+    if (isCurrent) {    
       followupElem.hide();
       followupToggleButton.toggle(!!(conversationMessages && conversationMessages.length > 1));
-    } else {
-      readonlyNoteElem
-        .text(
-          "Read-only historical entry from " + AITuningSession.formatEntryLabel(entry.timestamp) +
-          ". Select “Current” to run a new analysis, or the most recent entry to continue asking follow-up questions.",
-        )
-        .show();
+    } else {      
       followupElem.hide();
       followupToggleButton.hide();
     }
@@ -828,7 +819,6 @@ function AIAnalysisDialog(dialog, onSaveInstructions, onResult) {
           sessionDirty = true;
           analyzeButton.hide();
           instructionsElem.prop("readonly", true);
-          readonlyNoteElem.hide().text("");
         }
 
         renderConversation();
