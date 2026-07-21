@@ -1882,13 +1882,29 @@ dialog h3 {
 }
 
 .ai-analysis-dialog .ai-session-entry {
-    padding: 0.5em 0.6em;
+    position: relative;
+    padding: 0.5em 1.8em 0.5em 0.6em;
     margin-bottom: 0.3em;
     border-radius: 4px;
     cursor: pointer;
     background-color: #fff;
     border: 1px solid #e2e2e2;
     font-size: 0.85em;
+}
+
+.ai-analysis-dialog .ai-session-entry-delete {
+    position: absolute;
+    top: 0.4em;
+    right: 0.3em;
+    background: none;
+    border: none;
+    padding: 0.1em 0.3em;
+    color: #bbb;
+    cursor: pointer;
+}
+
+.ai-analysis-dialog .ai-session-entry-delete:hover {
+    color: #a94442;
 }
 
 .ai-analysis-dialog .ai-session-entry:hover {

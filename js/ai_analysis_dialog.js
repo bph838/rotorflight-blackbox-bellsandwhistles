@@ -233,6 +233,16 @@ function AIAnalysisDialog(dialog, onSaveInstructions, onResult) {
           item.append($('<span class="ai-session-entry-readonly-tag"></span>').text("Read-only"));
         }
 
+        var deleteButton = $(
+          '<button type="button" class="ai-session-entry-delete" title="Delete this entry">' +
+          '<span class="glyphicon glyphicon-trash" aria-hidden="true"></span></button>',
+        );
+        deleteButton.click(function (e) {
+          e.stopPropagation();
+          deleteEntry(index);
+        });
+        item.append(deleteButton);
+
         item.click(function () {
           selectEntry(index);
         });
@@ -299,6 +309,42 @@ function AIAnalysisDialog(dialog, onSaveInstructions, onResult) {
 
     resetToPendingUi();
     renderSessionSidebar();
+  }
+
+  // Removes an entry from the session for good, after confirming with the user, and saves the result.
+  function deleteEntry(index) {
+    if (!currentSession) {
+      return;
+    }
+
+    var entry = currentSession.entries[index];
+    var confirmed = confirm(
+      "Delete the entry from " + AITuningSession.formatEntryLabel(entry.timestamp) + "? This can't be undone.",
+    );
+    if (!confirmed) {
+      return;
+    }
+
+    currentSession.entries.splice(index, 1);
+
+    // Entries before the baseline boundary were loaded from disk - removing one of them shifts every
+    // later index down by one, so the boundary has to shift with it to keep pointing at the same split.
+    if (index < sessionBaselineEntryCount) {
+      sessionBaselineEntryCount -= 1;
+    }
+
+    if (selectedEntryIndex === index) {
+      // Was looking at the entry that just got deleted - nothing left to show it, back to pending.
+      selectPendingSlot();
+    } else if (selectedEntryIndex !== null && selectedEntryIndex > index) {
+      // Still looking at a surviving entry, but its index shifted down by the removal.
+      selectEntry(selectedEntryIndex - 1);
+    } else {
+      renderSessionSidebar();
+    }
+
+    sessionDirty = true;
+    autoSaveIfDirty();
   }
 
   // True only for the single entry that was actually produced in this run of the app (not loaded from
