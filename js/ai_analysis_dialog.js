@@ -25,6 +25,9 @@ function AIAnalysisDialog(dialog, onSaveInstructions, onResult) {
   var cacheKey = null;
   var conversationMessages = null; // Full message history sent to/from the API, for follow-up questions
   var craftName = "";
+  // Whether the user has toggled the graph image to hidden - a standing preference that should stick
+  // as they browse between entries/results, not just apply to whichever one was visible when clicked.
+  var imageHidden = false;
 
   // Tuning session state. currentSession.entries holds only *completed* analyses - the newest one is
   // always the "Current" interactive entry (follow-ups allowed); everything before it is read-only
@@ -137,8 +140,8 @@ function AIAnalysisDialog(dialog, onSaveInstructions, onResult) {
   }
 
   function showResultUi() {
-    previewElem.addClass('compact').show();
-    toggleImageButton.show().text("Hide graph");
+    previewElem.addClass('compact').toggle(!imageHidden);
+    toggleImageButton.show().text(imageHidden ? "Show graph" : "Hide graph");
     instructionsGroupElem.hide();
     followupToggleButton.show();
   }
@@ -391,8 +394,8 @@ function AIAnalysisDialog(dialog, onSaveInstructions, onResult) {
     // No point showing an empty read-only instructions box - hide it so there's more room for the
     // actual data (graph/conversation) when this entry didn't have any extra instructions.
     instructionsGroupElem.toggle(!!(entry.instructions && entry.instructions.trim()));
-    previewElem.attr("src", imageDataUrl || "").addClass("compact").show();
-    toggleImageButton.show().text("Hide graph");
+    previewElem.attr("src", imageDataUrl || "").addClass("compact").toggle(!imageHidden);
+    toggleImageButton.show().text(imageHidden ? "Show graph" : "Hide graph");
 
     renderConversation();
     resultElem.show();
@@ -639,6 +642,7 @@ function AIAnalysisDialog(dialog, onSaveInstructions, onResult) {
 
   toggleImageButton.click(function () {
     var willShow = !previewElem.is(":visible");
+    imageHidden = !willShow;
     previewElem.toggle(willShow);
     toggleImageButton.text(willShow ? "Hide graph" : "Show graph");
   });
