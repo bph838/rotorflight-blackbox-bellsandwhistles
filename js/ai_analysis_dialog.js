@@ -304,6 +304,28 @@ function AIAnalysisDialog(dialog, onSaveInstructions, onResult) {
     return index === currentSession.entries.length - 1 && index >= sessionBaselineEntryCount;
   }
 
+  // If the user already ran a single-shot analysis (today's default, no-session flow) before
+  // creating/opening a tuning session, that result shouldn't just be thrown away by the reset to a
+  // blank pending state below - this builds a session entry out of it so the caller can carry it
+  // over as the session's first entry instead. Returns null if there's nothing to carry over, or if
+  // a session was already active (in which case the live analysis already belongs to that session,
+  // not to whatever new one is about to replace it).
+  function buildEntryFromCurrentAnalysis(session) {
+    if (currentSession || !conversationMessages || conversationMessages.length < 2) {
+      return null;
+    }
+
+    var timestamp = new Date().toISOString();
+    return {
+      id: AITuningSession.makeEntryId(session, timestamp),
+      timestamp: timestamp,
+      configSummary: configSummary,
+      instructions: instructionsElem.val() || "",
+      model: model,
+      conversationMessages: conversationMessages,
+    };
+  }
+
   // Resets the dialog to the "pending" state: no entry selected, ready for a fresh Analyze.
   // Used both when no session is active (today's default behavior) and whenever a session-aware
   // .show() call, Create, or Open needs a clean slate to analyze into.
@@ -424,6 +446,14 @@ function AIAnalysisDialog(dialog, onSaveInstructions, onResult) {
     }
 
     var newSession = AITuningSession.create(sessionName, tuningGoal, craftNameForSession());
+
+    // Carry over an already-completed single-shot analysis (if any) as this session's first entry,
+    // rather than losing it when the dialog resets to a blank pending state below.
+    var carryOverEntry = buildEntryFromCurrentAnalysis(newSession);
+    if (carryOverEntry) {
+      newSession.entries.push(carryOverEntry);
+    }
+
     var suggestedFilename = AITuningSession.buildFilename(
       sessionName,
       craftNameForSession(),
@@ -447,7 +477,13 @@ function AIAnalysisDialog(dialog, onSaveInstructions, onResult) {
           currentSessionFilePath = filePath;
           sessionBaselineEntryCount = 0; // Brand new session - nothing loaded from disk yet.
           sessionDirty = false;
-          resetToPendingUi();
+
+          if (carryOverEntry) {
+            selectEntry(newSession.entries.length - 1);
+          } else {
+            resetToPendingUi();
+          }
+
           renderSessionSidebar();
         },
         function (message) {
@@ -477,13 +513,26 @@ function AIAnalysisDialog(dialog, onSaveInstructions, onResult) {
     AITuningSession.loadFromPath(
       filePath,
       function (loadedSession) {
+        // Must be computed before currentSession is reassigned below - it checks against the
+        // *previous* (no-session) state to decide whether there's anything to carry over.
+        var carryOverEntry = buildEntryFromCurrentAnalysis(loadedSession);
+
         currentSession = loadedSession;
         currentSessionFilePath = filePath;
         // Every entry already in the file was finalized in a previous run - none of them are ever
-        // eligible to become "Current" here, even if one of them is last in the array.
+        // eligible to become "Current" here, even if one of them is last in the array. A carried-over
+        // entry goes after them - it wasn't loaded from disk, so it's the new interactive "Current".
         sessionBaselineEntryCount = loadedSession.entries.length;
-        sessionDirty = false;
-        resetToPendingUi();
+
+        if (carryOverEntry) {
+          loadedSession.entries.push(carryOverEntry);
+          sessionDirty = true; // this entry isn't part of the file we just loaded - needs saving
+          selectEntry(loadedSession.entries.length - 1);
+        } else {
+          sessionDirty = false;
+          resetToPendingUi();
+        }
+
         renderSessionSidebar();
       },
       function (message) {
