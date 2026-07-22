@@ -1926,30 +1926,6 @@ dialog h3 {
     font-size: 0.9em;
 }
 
-.ai-analysis-dialog .ai-session-entry-type-tag {
-    display: inline-block;
-    margin-top: 0.2em;
-    padding: 0.05em 0.4em;
-    border-radius: 3px;
-    font-size: 0.8em;
-    font-weight: bold;
-}
-
-.ai-analysis-dialog .ai-session-entry-type-ai {
-    color: #31708f;
-    background-color: #d9edf7;
-}
-
-.ai-analysis-dialog .ai-session-entry-type-manual {
-    color: #8a6d3b;
-    background-color: #fcf3d9;
-}
-
-.ai-analysis-dialog .ai-analysis-manual-tag {
-    color: #8a6d3b;
-    font-weight: bold;
-}
-
 .ai-analysis-dialog .ai-session-main {
     flex: 1 1 auto;
     min-width: 0;
