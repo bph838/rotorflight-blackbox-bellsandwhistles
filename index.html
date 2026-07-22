@@ -3169,10 +3169,11 @@
                             </div>
                         </div>                        
                         <img class="ai-analysis-preview" alt="Step response graph preview" />
+                        <p class="ai-analysis-manual-tag" style="display:none;">Manual entry &mdash; no AI analysis</p>
                         <div class="form-group">
-                            <label>Extra instructions for the AI</label>
+                            <label data-toggle="tooltip" title="Used as extra instructions for the AI when you run an analysis - or just keep it as your own notes, AI analysis is optional.">Notes</label>
                             <textarea class="ai-analysis-instructions form-control" rows="3"
-                                placeholder="e.g. make the process smoother"></textarea>
+                                placeholder="e.g. make the process smoother, or just your own notes"></textarea>
                         </div>
                         <div class="ai-analysis-loading" style="display:none;">
                             <span class="ai-analysis-spinner" aria-hidden="true"></span>
@@ -3191,6 +3192,7 @@
                 <div class="modal-footer">
                     <button type="button" class="btn btn-default btn-xs ai-analysis-followup-toggle pull-left" style="display:none;">Ask a follow-up question</button>
                     <button type="button" class="btn btn-default" data-dismiss="modal" data-toggle="tooltip" title="Close dialog box">Close</button>
+                    <button type="button" class="btn btn-default ai-session-save-manual" data-toggle="tooltip" title="Save this graph and your notes as a session entry without sending it to the AI - track your own manual tuning" style="display:none;">Save without AI</button>
                     <button type="button" class="btn btn-primary ai-analysis-dialog-analyze" data-toggle="tooltip" title="Send the graph to the AI for analysis">Analyze</button>
                 </div>
             </div>

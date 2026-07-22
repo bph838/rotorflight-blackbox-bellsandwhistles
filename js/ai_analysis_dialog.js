@@ -56,6 +56,7 @@ function AIAnalysisDialog(dialog, onSaveInstructions, onResult) {
 
   var instructionsElem = $(".ai-analysis-instructions", dialog);
   var instructionsGroupElem = instructionsElem.closest(".form-group");
+  var manualTagElem = $(".ai-analysis-manual-tag", dialog);
   var resultElem = $(".ai-analysis-result", dialog);
   var errorElem = $(".ai-analysis-error", dialog);
   var loadingElem = $(".ai-analysis-loading", dialog);
@@ -63,6 +64,7 @@ function AIAnalysisDialog(dialog, onSaveInstructions, onResult) {
   var modelElem = $(".ai-analysis-model", dialog);
   var costElem = $(".ai-analysis-cost", dialog);
   var analyzeButton = $(".ai-analysis-dialog-analyze", dialog);
+  var saveManualEntryButton = $(".ai-session-save-manual", dialog);
   var toggleImageButton = $(".ai-analysis-toggle-image", dialog);
   var copyTextButton = $(".ai-analysis-copy-text", dialog);
   var copyImageButton = $(".ai-analysis-copy-image", dialog);
@@ -141,7 +143,6 @@ function AIAnalysisDialog(dialog, onSaveInstructions, onResult) {
   function showResultUi() {
     previewElem.addClass('compact').toggle(!imageHidden);
     toggleImageButton.show().text(imageHidden ? "Show graph" : "Hide graph");
-    instructionsGroupElem.hide();
     followupToggleButton.show();
   }
 
@@ -232,6 +233,12 @@ function AIAnalysisDialog(dialog, onSaveInstructions, onResult) {
           item.append($('<span class="ai-session-entry-readonly-tag"></span>').text("Read-only"));
         }
 
+        item.append(
+          $('<span class="ai-session-entry-type-tag"></span>')
+            .addClass(entry.isManual ? "ai-session-entry-type-manual" : "ai-session-entry-type-ai")
+            .text(entry.isManual ? "Manual" : "AI"),
+        );
+
         var deleteButton = $(
           '<button type="button" class="ai-session-entry-delete" title="Delete this entry">' +
           '<span class="glyphicon glyphicon-trash" aria-hidden="true"></span></button>',
@@ -250,20 +257,19 @@ function AIAnalysisDialog(dialog, onSaveInstructions, onResult) {
       })(i);
     }
 
-    // The pending "ready to analyze" slot stays in the list for as long as nothing has actually been
-    // analyzed yet in this run of the app - it must not disappear just because the user is browsing a
-    // different (read-only) entry, only once a real new entry takes its place.
-    if (entries.length === sessionBaselineEntryCount) {
-      var pendingItem = $('<div class="ai-session-entry"></div>')
-        .toggleClass("active", selectedEntryIndex === null)
-        .append($('<span class="ai-session-entry-label"></span>').text("Current (not yet analyzed)"));
+    // The pending "ready to analyze" slot is always available, regardless of how many entries already
+    // exist - it's the only place a fresh Analyze/Save-without-AI can happen, so there must always be
+    // a way back to it (e.g. after a carried-over entry gets auto-selected on Create/Open, or after
+    // browsing into a historical entry).
+    var pendingItem = $('<div class="ai-session-entry"></div>')
+      .toggleClass("active", selectedEntryIndex === null)
+      .append($('<span class="ai-session-entry-label"></span>').text("Current (not yet analyzed)"));
 
-      pendingItem.click(function () {
-        selectPendingSlot();
-      });
+    pendingItem.click(function () {
+      selectPendingSlot();
+    });
 
-      entryListElem.append(pendingItem);
-    }
+    entryListElem.append(pendingItem);
   }
 
   // Refreshes the tuning goal / cost breakdown shown under the cog button. Safe to call whether or
@@ -374,6 +380,36 @@ function AIAnalysisDialog(dialog, onSaveInstructions, onResult) {
     };
   }
 
+  // Builds a "manual" entry - a graph + notes saved without ever calling the AI, so the user can track
+  // their own tuning work in the same session/timeline. Unlike an AI entry, there's no conversation to
+  // pull the image out of later, so it's stored directly on the entry (extractEntryImageDataUrl()
+  // already falls back to this field for exactly this reason).
+  function makeManualEntry(session, sourceImageDataUrl, sourceConfigSummary, sourceInstructions) {
+    var timestamp = new Date().toISOString();
+    return {
+      id: AITuningSession.makeEntryId(session, timestamp),
+      timestamp: timestamp,
+      imageDataUrl: sourceImageDataUrl,
+      configSummary: sourceConfigSummary || "",
+      instructions: sourceInstructions || "",
+      model: null,
+      conversationMessages: [],
+      isManual: true,
+    };
+  }
+
+  // Same idea as buildEntryFromCurrentAnalysis(), but for the "no AI analysis run yet" case - carries
+  // over whatever graph is currently pending as a manual entry instead of just discarding it. Only
+  // relevant when there's no AI entry to carry over instead (buildEntryFromCurrentAnalysis already
+  // covers that case) and no session was already active (same reasoning as buildEntryFromCurrentAnalysis).
+  function buildManualEntryFromPendingCapture(session) {
+    if (currentSession || !pendingImageDataUrl) {
+      return null;
+    }
+
+    return makeManualEntry(session, pendingImageDataUrl, pendingConfigSummary, instructionsElem.val());
+  }
+
   // Resets the dialog to the "pending" state: no entry selected, ready for a fresh Analyze.
   // Used both when no session is active (today's default behavior) and whenever a session-aware
   // .show() call, Create, or Open needs a clean slate to analyze into.
@@ -384,9 +420,11 @@ function AIAnalysisDialog(dialog, onSaveInstructions, onResult) {
     resultElem.hide().html("");
     previewElem.removeClass("compact").show();
     toggleImageButton.hide();
+    manualTagElem.hide();
     instructionsGroupElem.show();
     instructionsElem.prop("readonly", false);
     analyzeButton.show();
+    saveManualEntryButton.toggle(!!currentSession);
     followupElem.hide();
     followupToggleButton.hide();
   }
@@ -423,9 +461,14 @@ function AIAnalysisDialog(dialog, onSaveInstructions, onResult) {
     conversationMessages = entry.conversationMessages;
     model = entry.model || model;
 
+    // The current entry's notes stay editable (see the blur handler below, which saves changes back
+    // onto whichever entry is selected) since it's still an active part of the session. Historical
+    // entries are locked - they're a record of what that iteration actually was - and if there was
+    // never anything written for one, there's no point showing an empty read-only box at all.
     instructionsElem.val(entry.instructions || "");
-    instructionsElem.prop("readonly", true);
-    modelElem.text("Model: " + (MODEL_DISPLAY_NAMES[entry.model] || entry.model));
+    instructionsElem.prop("readonly", !isCurrent);
+    modelElem.text(entry.isManual ? "" : "Model: " + (MODEL_DISPLAY_NAMES[entry.model] || entry.model));
+    manualTagElem.toggle(!!entry.isManual);
 
     errorElem.hide().text("");
     // Show this entry's own accumulated cost (initial analyze + any follow-ups it's had), not just
@@ -435,9 +478,8 @@ function AIAnalysisDialog(dialog, onSaveInstructions, onResult) {
     followupInput.val("");
 
     analyzeButton.hide();
-    // No point showing an empty read-only instructions box - hide it so there's more room for the
-    // actual data (graph/conversation) when this entry didn't have any extra instructions.
-    instructionsGroupElem.toggle(!!(entry.instructions && entry.instructions.trim()));
+    saveManualEntryButton.hide();
+    instructionsGroupElem.toggle(isCurrent || !!(entry.instructions && entry.instructions.trim()));
     previewElem.attr("src", imageDataUrl || "").addClass("compact").toggle(!imageHidden);
     toggleImageButton.show().text(imageHidden ? "Show graph" : "Hide graph");
 
@@ -488,8 +530,10 @@ function AIAnalysisDialog(dialog, onSaveInstructions, onResult) {
     var newSession = AITuningSession.create(sessionName, tuningGoal, craftNameForSession());
 
     // Carry over an already-completed single-shot analysis (if any) as this session's first entry,
-    // rather than losing it when the dialog resets to a blank pending state below.
-    var carryOverEntry = buildEntryFromCurrentAnalysis(newSession);
+    // rather than losing it when the dialog resets to a blank pending state below. If nothing's been
+    // analyzed but there's still a graph loaded, carry it over as a manual entry instead - AI analysis
+    // is always optional, so there's no reason to require it just to start tracking a session.
+    var carryOverEntry = buildEntryFromCurrentAnalysis(newSession) || buildManualEntryFromPendingCapture(newSession);
     if (carryOverEntry) {
       newSession.entries.push(carryOverEntry);
     }
@@ -518,12 +562,9 @@ function AIAnalysisDialog(dialog, onSaveInstructions, onResult) {
           sessionBaselineEntryCount = 0; // Brand new session - nothing loaded from disk yet.
           sessionDirty = false;
 
-          if (carryOverEntry) {
-            selectEntry(newSession.entries.length - 1);
-          } else {
-            resetToPendingUi();
-          }
-
+          // Land on the pending slot rather than the carried-over entry (if any) - Analyze/Save
+          // without AI need to be immediately available, not hidden behind having to navigate there.
+          resetToPendingUi();
           renderSessionSidebar();
         },
         function (message) {
@@ -555,7 +596,7 @@ function AIAnalysisDialog(dialog, onSaveInstructions, onResult) {
       function (loadedSession) {
         // Must be computed before currentSession is reassigned below - it checks against the
         // *previous* (no-session) state to decide whether there's anything to carry over.
-        var carryOverEntry = buildEntryFromCurrentAnalysis(loadedSession);
+        var carryOverEntry = buildEntryFromCurrentAnalysis(loadedSession) || buildManualEntryFromPendingCapture(loadedSession);
 
         currentSession = loadedSession;
         currentSessionFilePath = filePath;
@@ -567,11 +608,13 @@ function AIAnalysisDialog(dialog, onSaveInstructions, onResult) {
         if (carryOverEntry) {
           loadedSession.entries.push(carryOverEntry);
           sessionDirty = true; // this entry isn't part of the file we just loaded - needs saving
-          selectEntry(loadedSession.entries.length - 1);
         } else {
           sessionDirty = false;
-          resetToPendingUi();
         }
+
+        // Land on the pending slot rather than the carried-over entry (if any) - Analyze/Save
+        // without AI need to be immediately available, not hidden behind having to navigate there.
+        resetToPendingUi();
 
         renderSessionSidebar();
         autoSaveIfDirty();
@@ -776,7 +819,6 @@ function AIAnalysisDialog(dialog, onSaveInstructions, onResult) {
     costElem.hide().text("");
     followupElem.hide();
     followupToggleButton.hide();
-    instructionsGroupElem.hide();
     conversationMessages = null;
     setBusy(true);
 
@@ -818,7 +860,7 @@ function AIAnalysisDialog(dialog, onSaveInstructions, onResult) {
           selectedEntryIndex = currentSession.entries.length - 1;
           sessionDirty = true;
           analyzeButton.hide();
-          instructionsElem.prop("readonly", true);
+          saveManualEntryButton.hide();
         }
 
         renderConversation();
@@ -833,6 +875,59 @@ function AIAnalysisDialog(dialog, onSaveInstructions, onResult) {
         errorElem.text(errorMessage).show();
       },
     );
+  });
+
+  // Saves the currently pending graph/notes as a session entry without ever calling the AI, so the
+  // user can track their own manual tuning work in the same timeline as AI-analyzed iterations - AI
+  // analysis is always optional, never required to start or continue a session.
+  saveManualEntryButton.click(function () {
+    saveManualEntryButton.tooltip("hide");
+
+    if (!currentSession) {
+      return;
+    }
+
+    if (!imageDataUrl) {
+      errorElem.text("No step response graph is available to save.").show();
+      return;
+    }
+
+    var entry = makeManualEntry(currentSession, imageDataUrl, configSummary, instructionsElem.val());
+    currentSession.entries.push(entry);
+    sessionDirty = true;
+
+    selectEntry(currentSession.entries.length - 1);
+    autoSaveIfDirty();
+  });
+
+  // Notes are the user's own record for an entry, not just a snapshot of what was sent to the AI, so
+  // they stay editable even on already-saved/read-only entries - any edit is saved back onto that
+  // entry as soon as the field loses focus. While on the pending (not-yet-saved) slot, there's no
+  // entry to attach it to yet, so just keep the in-memory snapshot in sync instead.
+  instructionsElem.on("blur", function () {
+    if (instructionsElem.prop("readonly")) {
+      return;
+    }
+
+    var value = instructionsElem.val();
+
+    if (selectedEntryIndex === null) {
+      pendingInstructions = value;
+      return;
+    }
+
+    if (!currentSession) {
+      return;
+    }
+
+    var entry = currentSession.entries[selectedEntryIndex];
+    if (!entry || entry.instructions === value) {
+      return;
+    }
+
+    entry.instructions = value;
+    sessionDirty = true;
+    autoSaveIfDirty();
   });
 
   followupButton.click(function () {
