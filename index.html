@@ -307,7 +307,7 @@
                 <h4>Expert</h4>
                 <div>
                     <div class="btn-group" role="group">
-                        <button type="button" class="btn btn-default ai-analyse-stepresponse" data-toggle="tooltip" title="Send the step response graph to AI for analysis">
+                        <button type="button" class="btn btn-default ai-stepresponse-logging" data-toggle="tooltip" title="Send the step response graph to AI for analysis">
                             <span class="glyphicon glyphicon-comment"></span>
                         </button>
                         <button type="button" class="btn btn-default open-craft-config-dialog" data-toggle="tooltip" title="Load Rotorflight configuration (dump/diff)">
@@ -3101,102 +3101,6 @@
                 </div>
             </div>
         </div>
-    </div>
-
-    <div class="modal fade ai-analysis-dialog" id="dlgAIAnalysis">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close" data-toggle="tooltip" title="Close the dialog box">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                    <h4 class="modal-title">AI Step Response Analysis</h4>
-                    <div class="ai-session-toolbar">
-                        <button type="button" class="btn btn-default btn-xs ai-session-new" data-toggle="tooltip" title="Start a new tuning session file, tracking every analysis run against this craft from here on">Create new tuning session</button>
-                        <button type="button" class="btn btn-default btn-xs ai-session-open" data-toggle="tooltip" title="Open a previously saved tuning session file">Open tuning session</button>
-                        <button type="button" class="btn btn-default btn-xs ai-session-save" data-toggle="tooltip" title="Save the current tuning session to disk" style="display:none;" disabled>Save current session</button>
-                        <button type="button" class="btn btn-default btn-xs ai-session-details-toggle" data-toggle="tooltip" title="Show tuning goal and estimated AI cost for this session" style="display:none;">
-                            <span class="glyphicon glyphicon-cog" aria-hidden="true"></span>
-                        </button>
-                        <span class="ai-session-status text-muted">No tuning session open</span>                        
-                    </div>
-                    <div class="ai-session-details-panel" style="display:none;">
-                        <p class="ai-session-details-goal"></p>
-                        <p class="ai-session-details-total-cost"></p>
-                    </div>
-                </div>
-                <div class="modal-body">
-                    <div class="ai-session-sidebar" style="display:none;">
-                        <div class="ai-session-sidebar-header">
-                            <span>Session entries</span>
-                            <button type="button" class="btn btn-default btn-xs ai-session-sidebar-toggle" data-toggle="tooltip" title="Collapse/expand the session entry list">&laquo;</button>
-                        </div>
-                        <div class="ai-session-entry-list"></div>
-                    </div>
-                    <div class="ai-session-main">
-                        <div class="alert alert-warning ai-session-unsaved-warning" style="display:none;">
-                            <p>This tuning session has analysis that hasn&rsquo;t been saved yet.</p>
-                            <div class="ai-session-unsaved-buttons">
-                                <button type="button" class="btn btn-default btn-sm ai-session-unsaved-cancel">Cancel</button>
-                                <button type="button" class="btn btn-default btn-sm ai-session-unsaved-discard">Close without saving</button>
-                                <button type="button" class="btn btn-primary btn-sm ai-session-unsaved-save">Save and close</button>
-                            </div>
-                        </div>
-                        <div class="ai-session-create-form" style="display:none;">
-                            <div class="form-group">
-                                <label>Session name</label>
-                                <input type="text" class="form-control ai-session-name-input" placeholder="e.g. Tron 7.0 rate tuning" />
-                            </div>
-                            <div class="form-group">
-                                <label>Tuning goal</label>
-                                <textarea class="form-control ai-session-goal-input" rows="2"
-                                    placeholder="e.g. Reduce pitch axis overshoot without adding oscillation"></textarea>
-                            </div>
-                            <div class="ai-session-create-buttons">
-                                <button type="button" class="btn btn-default btn-sm ai-session-create-cancel">Cancel</button>
-                                <button type="button" class="btn btn-primary btn-sm ai-session-create-confirm">Create session</button>
-                            </div>
-                        </div>
-                        <div class="ai-analysis-header">
-                            <p class="ai-analysis-status text-muted">
-                                <span class="ai-analysis-model"></span>
-                                <span class="ai-analysis-cost" style="display:none;"></span>
-                            </p>
-                            <div class="ai-analysis-copy-buttons">
-                                <button type="button" class="btn btn-default btn-xs ai-analysis-toggle-image" style="display:none;">Hide graph</button>
-                                <button type="button" class="btn btn-default btn-xs ai-analysis-copy-text" data-toggle="tooltip" title="Copy the prompt text to the clipboard, to paste elsewhere">Copy prompt</button>
-                                <button type="button" class="btn btn-default btn-xs ai-analysis-copy-image" data-toggle="tooltip" title="Copy the step response image to the clipboard, to paste elsewhere">Copy image</button>
-                            </div>
-                        </div>                        
-                        <img class="ai-analysis-preview" alt="Step response graph preview" />
-                        <div class="form-group">
-                            <label>Extra instructions for the AI</label>
-                            <textarea class="ai-analysis-instructions form-control" rows="3"
-                                placeholder="e.g. make the process smoother"></textarea>
-                        </div>
-                        <div class="ai-analysis-loading" style="display:none;">
-                            <span class="ai-analysis-spinner" aria-hidden="true"></span>
-                            <span>Analyzing, please wait&hellip;</span>
-                        </div>
-                        <div class="alert alert-danger ai-analysis-error" style="display:none;"></div>
-                        <div class="ai-analysis-result" style="display:none;"></div>
-                        <div class="ai-analysis-followup form-group" style="display:none;">
-                            <label>Ask a follow-up question</label>
-                            <textarea class="ai-analysis-followup-input form-control" rows="2"
-                                placeholder="e.g. why is the yaw axis oscillating?"></textarea>
-                            <button type="button" class="btn btn-default btn-sm ai-analysis-followup-send">Send</button>
-                        </div>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-default btn-xs ai-analysis-followup-toggle pull-left" style="display:none;">Ask a follow-up question</button>
-                    <button type="button" class="btn btn-default" data-dismiss="modal" data-toggle="tooltip" title="Close dialog box">Close</button>
-                    <button type="button" class="btn btn-primary ai-analysis-dialog-analyze" data-toggle="tooltip" title="Send the graph to the AI for analysis">Analyze</button>
-                </div>
-            </div>
-        </div>
-        <input type="file" class="ai-session-open-input" accept=".json" style="display:none" />
-        <input type="file" class="ai-session-save-input" style="display:none" nwsaveas="session.json" />
     </div>
 
     <div class="modal fade craft-config-dialog" id="dlgCraftConfig">

@@ -1204,17 +1204,7 @@ function BlackboxLogViewer() {
             invalidateGraph();
         });
 
-        $(".ai-analyse-stepresponse").click(function() {
-            var stepResponse = graph.getStepResponse();
-            stepResponse.plot(); // Ensure the step response data has been calculated at least once
-            var imageDataUrl = stepResponse.captureImage();
-            var configSummary = AIAnalysis.buildConfigSummary(flightLog.getSysConfig());
-            var cacheKey = (currentOffsetCache.log || '') + '#' + flightLog.getLogIndex();
-            var craftName = flightLog.getSysConfig()['Craft name'] || craftConfig.getCraftName() || 'UnknownCraft';
-
-            aiAnalysisDialog.show(imageDataUrl, configSummary, userSettings.aiApiKey, userSettings.aiModel,
-                userSettings.aiAnalysisInstructions, cacheKey, aiAnalysisResultCache[cacheKey], craftName);
-        });
+        
 
         $(".view-zoom-in").click(function() {
             zoomIn();
