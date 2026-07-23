@@ -23,6 +23,7 @@ function TuningLogDialog(dialog, getContext) {
 
     // Header / toolbar
     var nameElem            = $(".tuning-log-name", dialog);
+    var totalCostElem        = $(".tuning-log-total-cost", dialog);
     var newBtn               = $(".tuning-log-new", dialog);
     var openBtn               = $(".tuning-log-open", dialog);
     var openInput              = $(".tuning-log-open-input", dialog);
@@ -87,6 +88,15 @@ function TuningLogDialog(dialog, getContext) {
         } catch (e) {
             return iso;
         }
+    }
+
+    function formatCost(usd) {
+        if (!usd) return '';
+        return '$' + usd.toFixed(usd < 1 ? 4 : 2);
+    }
+
+    function entryCost(entry) {
+        return (entry.ai && entry.ai.costUsd) || 0;
     }
 
     function excerpt(text, maxLen) {
@@ -169,7 +179,16 @@ function TuningLogDialog(dialog, getContext) {
 
         nameElem.text(hasLog ? currentLog.name : '');
 
-        if (!hasLog) return;
+        if (!hasLog) {
+            totalCostElem.text('');
+            return;
+        }
+
+        var totalCost = 0;
+        for (var i = 0; i < currentLog.entries.length; i++) {
+            totalCost += entryCost(currentLog.entries[i]);
+        }
+        totalCostElem.text(totalCost ? ('AI cost: ' + formatCost(totalCost)) : '');
 
         renderSidebar();
         renderMain();
@@ -199,11 +218,15 @@ function TuningLogDialog(dialog, getContext) {
     }
 
     function buildEntryListItem(entry, index, isCurrent) {
+        var subtitle = isCurrent ? formatTimestamp(entry.timestamp) : (excerpt(entry.notes, 60) || '(no notes)');
+        var cost = entryCost(entry);
+        if (cost) subtitle += '  ·  ' + formatCost(cost);
+
         var li = $('<li class="ai-session-entry"></li>')
             .toggleClass('active', selectedIndex === index)
             .append($('<span class="ai-session-entry-label"></span>').text(isCurrent ? 'Current' : formatTimestamp(entry.timestamp)))
             .append($('<br>'))
-            .append($('<small></small>').text(isCurrent ? formatTimestamp(entry.timestamp) : (excerpt(entry.notes, 60) || '(no notes)')));
+            .append($('<small></small>').text(subtitle));
 
         var deleteBtn = $('<button type="button" class="ai-session-entry-delete" title="Delete entry">&times;</button>');
         deleteBtn.on('click', function(e) {
@@ -518,17 +541,18 @@ function TuningLogDialog(dialog, getContext) {
             historyMessages: historyMessages,
         };
 
-        function onResult(text, entryMessages) {
+        function onResult(text, entryMessages, costUsd) {
             entry.ai = entry.ai || {};
             entry.ai.model = settings.aiModel;
             entry.ai.conversation = entryMessages;
+            entry.ai.costUsd = (entry.ai.costUsd || 0) + (costUsd || 0);
 
             saveLogToDisk();
 
             aiPromptInput.val('');
-            aiLoadingElem.hide();
-            askAiBtn.prop('disabled', false);
-            renderConversation(entry);
+            // Full re-render (not just the conversation) so the cost badge on this entry's
+            // sidebar row and the total-cost figure in the header pick up the new spend.
+            render();
             aiPromptInput.attr('placeholder', 'Ask a follow-up question…');
         }
 

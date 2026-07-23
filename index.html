@@ -3155,6 +3155,7 @@
                         <button type="button" class="btn btn-default btn-sm tuning-log-new">New Log&hellip;</button>
                         <button type="button" class="btn btn-default btn-sm tuning-log-open">Open Log&hellip;</button>
                         <span class="ai-session-status tuning-log-name"></span>
+                        <span class="ai-session-status tuning-log-total-cost"></span>
                     </div>
                     <input type="file" class="tuning-log-open-input" accept=".json" style="display:none" />
                     <input type="file" class="tuning-log-save-input" style="display:none" />
@@ -3207,6 +3208,7 @@
 
                             <div class="ai-session-details-panel tuning-log-ai-panel" style="display:none;">
                                 <h4>Ask AI for tuning advice</h4>
+                                <div class="tuning-log-ai-model" style="margin-bottom: 0.5em; color: #888; font-size: 0.85em;"></div>
                                 <div class="tuning-log-ai-conversation"></div>
                                 <div class="tuning-log-ai-input" style="display:none;">
                                     <textarea class="form-control tuning-log-ai-prompt" rows="2" placeholder="Anything specific you want help with? (optional)"></textarea>
@@ -3481,7 +3483,7 @@
                                     <div>
                                         <label>Model</label>
                                         <select class="ai-model-select" style="width: 100%;">
-                                            <option value="claude-opus-4-8">Claude Opus 4.8 (most capable, recommended)</option>
+                                            <option value="claude-opus-4-8">Claude Opus 4.8 (most capable)</option>
                                             <option value="claude-sonnet-5">Claude Sonnet 5 (faster, cheaper)</option>
                                             <option value="claude-haiku-4-5">Claude Haiku 4.5 (fastest, cheapest)</option>
                                         </select>

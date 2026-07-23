@@ -20,6 +20,30 @@ var TuningAI = TuningAI || {};
         return (dataUrl || '').replace(/^data:image\/\w+;base64,/, '');
     }
 
+    // USD per million tokens (standard list pricing, not time-limited introductory rates).
+    TuningAI.PRICING = {
+        'claude-opus-4-8':  { input: 5.00, output: 25.00 },
+        'claude-sonnet-5':  { input: 3.00, output: 15.00 },
+        'claude-haiku-4-5': { input: 1.00, output: 5.00 },
+    };
+
+    /**
+     * Estimated cost in USD for one API response, from its `usage` object. Cache writes are
+     * priced at the 5-minute-TTL premium (1.25x input) since that's what this app requests.
+     */
+    TuningAI.estimateCostUsd = function(model, usage) {
+        var pricing = TuningAI.PRICING[model];
+        if (!pricing || !usage) return 0;
+
+        var cost = 0;
+        cost += ((usage.input_tokens || 0) / 1e6) * pricing.input;
+        cost += ((usage.output_tokens || 0) / 1e6) * pricing.output;
+        cost += ((usage.cache_creation_input_tokens || 0) / 1e6) * pricing.input * 1.25;
+        cost += ((usage.cache_read_input_tokens || 0) / 1e6) * pricing.input * 0.1;
+
+        return cost;
+    };
+
     /**
      * options: { configSummary, instructions }
      */
@@ -138,7 +162,8 @@ var TuningAI = TuningAI || {};
             text = text || '(No text response received)';
 
             var updatedMessages = messages.concat([{ role: 'assistant', content: text }]);
-            onResult(text, updatedMessages);
+            var costUsd = TuningAI.estimateCostUsd(model, response.usage);
+            onResult(text, updatedMessages, costUsd);
         }).catch(function(error) {
             onError((error && error.message) ? error.message : String(error));
         });
@@ -149,9 +174,10 @@ var TuningAI = TuningAI || {};
      * with the rest of the tuning log's history prepended as context.
      *
      * options: { apiKey, model, historyMessages, entry: {image, config}, instructions }
-     * onResult(resultText, entryMessages) - entryMessages is *this entry's own* conversation
-     * (not including historyMessages/repeats of it) - keep it and pass it back into TuningAI.ask()
-     * for follow-ups, and persist it as entry.ai.conversation.
+     * onResult(resultText, entryMessages, costUsd) - entryMessages is *this entry's own*
+     * conversation (not including historyMessages/repeats of it) - keep it and pass it back into
+     * TuningAI.ask() for follow-ups, and persist it as entry.ai.conversation. costUsd is this
+     * call's estimated price - add it to any running total you're keeping for the entry.
      */
     TuningAI.analyze = function(options, onResult, onError) {
         if (!options.apiKey) {
@@ -173,8 +199,8 @@ var TuningAI = TuningAI || {};
 
         var initialMessage = { role: 'user', content: content };
 
-        sendMessages(options, historyMessages.concat([initialMessage]), function(text, updatedMessages) {
-            onResult(text, updatedMessages.slice(historyMessages.length));
+        sendMessages(options, historyMessages.concat([initialMessage]), function(text, updatedMessages, costUsd) {
+            onResult(text, updatedMessages.slice(historyMessages.length), costUsd);
         }, onError);
     };
 
@@ -183,7 +209,8 @@ var TuningAI = TuningAI || {};
      *
      * options: { apiKey, model, historyMessages, messages, question }
      * `messages` is this entry's own conversation so far (as returned by a previous analyze()/ask() call).
-     * onResult(resultText, entryMessages) - pass the updated entryMessages back in for the next follow-up.
+     * onResult(resultText, entryMessages, costUsd) - pass the updated entryMessages back in for
+     * the next follow-up; costUsd is this call's estimated price.
      */
     TuningAI.ask = function(options, onResult, onError) {
         if (!options.apiKey) {
@@ -200,8 +227,8 @@ var TuningAI = TuningAI || {};
         var historyMessages = options.historyMessages || [];
         var messages = (options.messages || []).concat([{ role: 'user', content: question }]);
 
-        sendMessages(options, historyMessages.concat(messages), function(text, updatedMessages) {
-            onResult(text, updatedMessages.slice(historyMessages.length));
+        sendMessages(options, historyMessages.concat(messages), function(text, updatedMessages, costUsd) {
+            onResult(text, updatedMessages.slice(historyMessages.length), costUsd);
         }, onError);
     };
 
