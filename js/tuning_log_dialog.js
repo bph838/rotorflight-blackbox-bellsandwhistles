@@ -55,6 +55,7 @@ function TuningLogDialog(dialog, getContext) {
 
     // Ask AI panel
     var aiPanelElem            = $(".tuning-log-ai-panel", dialog);
+    var aiModelElem              = $(".tuning-log-ai-model", dialog);
     var conversationElem         = $(".tuning-log-ai-conversation", dialog);
     var aiInputElem                = $(".tuning-log-ai-input", dialog);
     var aiPromptInput              = $(".tuning-log-ai-prompt", dialog);
@@ -93,6 +94,16 @@ function TuningLogDialog(dialog, getContext) {
     function formatCost(usd) {
         if (!usd) return '';
         return '$' + usd.toFixed(usd < 1 ? 4 : 2);
+    }
+
+    var MODEL_DISPLAY_NAMES = {
+        'claude-opus-4-8': 'Claude Opus 4.8',
+        'claude-sonnet-5': 'Claude Sonnet 5',
+        'claude-haiku-4-5': 'Claude Haiku 4.5',
+    };
+
+    function modelDisplayName(id) {
+        return (id && MODEL_DISPLAY_NAMES[id]) || id || 'no model configured';
     }
 
     function entryCost(entry) {
@@ -274,6 +285,11 @@ function TuningLogDialog(dialog, getContext) {
         // shown (read-only) if that entry already has one.
         aiPanelElem.toggle(hasImage && (isCurrentFlightLog || hasConversation));
         aiInputElem.toggle(hasImage && isCurrentFlightLog);
+        // Once a conversation exists, keep showing the model that actually answered it, even
+        // if Settings has since been changed to a different model.
+        var usedModel = entry && entry.ai && entry.ai.model;
+        var settingsModel = (context.userSettings || {}).aiModel;
+        aiModelElem.text((hasConversation ? 'Model: ' : 'Will use: ') + modelDisplayName(usedModel || settingsModel));
         aiPromptInput.attr('placeholder', hasConversation ?
             'Ask a follow-up question…' : 'Anything specific you want help with? (optional)');
         aiErrorElem.hide();
