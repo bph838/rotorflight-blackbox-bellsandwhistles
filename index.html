@@ -3143,6 +3143,91 @@
         </div>
     </div>
 
+    <div class="modal fade ai-analysis-dialog" id="dlgTuningLog">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close" data-toggle="tooltip" title="Close the dialog box">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                    <h4 class="modal-title">Tuning Log</h4>
+                    <div class="ai-session-toolbar">
+                        <button type="button" class="btn btn-default btn-sm tuning-log-new">New Log&hellip;</button>
+                        <button type="button" class="btn btn-default btn-sm tuning-log-open">Open Log&hellip;</button>
+                        <span class="ai-session-status tuning-log-name"></span>
+                    </div>
+                    <input type="file" class="tuning-log-open-input" accept=".json" style="display:none" />
+                    <input type="file" class="tuning-log-save-input" style="display:none" />
+                </div>
+                <div class="modal-body">
+                    <div class="tuning-log-empty" style="padding: 15px;">
+                        <p>No tuning log is open yet. Create a new one, or open an existing tuning log
+                            <code>.json</code> file, using the buttons above.</p>
+                    </div>
+
+                    <div class="ai-session-create-form tuning-log-create-form" style="display:none;">
+                        <label>Tuning log name</label>
+                        <input type="text" class="form-control tuning-log-name-input" placeholder="e.g. craft name" />
+                        <div class="ai-session-create-buttons">
+                            <button type="button" class="btn btn-default tuning-log-create-cancel">Cancel</button>
+                            <button type="button" class="btn btn-primary tuning-log-create-confirm">Create&hellip;</button>
+                        </div>
+                    </div>
+
+                    <div class="tuning-log-body" style="display:none;">
+                        <div class="ai-session-sidebar">
+                            <div class="ai-session-sidebar-header">
+                                <span>Entries</span>
+                                <div>
+                                    <button type="button" class="btn btn-default btn-xs tuning-log-prev" data-toggle="tooltip" title="Previous entry"><span class="glyphicon glyphicon-chevron-up"></span></button>
+                                    <button type="button" class="btn btn-default btn-xs tuning-log-next" data-toggle="tooltip" title="Next entry"><span class="glyphicon glyphicon-chevron-down"></span></button>
+                                </div>
+                            </div>
+                            <ul class="ai-session-entry-list tuning-log-entry-list"></ul>
+                        </div>
+                        <div class="ai-session-main">
+                            <div class="ai-analysis-header">
+                                <h4 class="tuning-log-entry-title"></h4>
+                                <button type="button" class="btn btn-primary btn-sm tuning-log-capture">Capture step response from current flight log</button>
+                            </div>
+
+                            <div class="alert alert-info tuning-log-no-image">Nothing captured for this entry yet.</div>
+                            <img class="ai-analysis-preview tuning-log-image" style="display:none;" />
+
+                            <pre class="tuning-log-config-summary" style="display:none; max-height: 8em; overflow-y: auto; font-size: 0.8em;"></pre>
+
+                            <div class="tuning-log-notes-block" style="display:none;">
+                                <label>Notes</label>
+                                <textarea class="form-control tuning-log-notes" rows="3" placeholder="What did you change? What are you trying to fix?"></textarea>
+                            </div>
+
+                            <div class="ai-session-create-buttons tuning-log-save-row" style="display:none;">
+                                <button type="button" class="btn btn-success tuning-log-save-entry">Save to Log</button>
+                            </div>
+
+                            <div class="ai-session-details-panel tuning-log-ai-panel" style="display:none;">
+                                <h4>Ask AI for tuning advice</h4>
+                                <div class="tuning-log-ai-conversation"></div>
+                                <textarea class="form-control tuning-log-ai-prompt" rows="2" placeholder="Anything specific you want help with? (optional)"></textarea>
+                                <div class="ai-analysis-copy-buttons" style="margin-top: 0.5em;">
+                                    <button type="button" class="btn btn-primary btn-sm tuning-log-ask-ai">Ask AI</button>
+                                </div>
+                                <div class="ai-analysis-loading tuning-log-ai-loading" style="display:none;">
+                                    <div class="ai-analysis-spinner"></div>
+                                    <span>Thinking&hellip;</span>
+                                </div>
+                                <div class="alert alert-danger tuning-log-ai-error" style="display:none;"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal" data-toggle="tooltip" title="Close dialog box">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div class="modal fade user-settings-dialog" id="dlgUserSettings">
         <div class="modal-dialog">
             <div class="modal-content">
@@ -3609,9 +3694,9 @@
     <script src="js/graph_stepresponse_plot.js"></script>
     <script src="js/graph_stepresponse_calc.js"></script>
     <script src="js/graph_stepresponse.js"></script>
-    <script src="js/ai_analysis.js"></script>
-    <script src="js/ai_tuning_session.js"></script>
-    <script src="js/ai_analysis_dialog.js"></script>
+    <script src="js/tuning_log.js"></script>
+    <script src="js/tuning_ai.js"></script>
+    <script src="js/tuning_log_dialog.js"></script>
     <script src="js/sticks.js"></script>
     <script src="js/csv-exporter.js"></script>
     <script src="js/gui.js"></script>

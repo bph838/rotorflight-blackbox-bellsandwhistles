@@ -45,7 +45,13 @@
       "Bash(node --check \"f:/Repos/Repo Drone/rotorflight-blackbox-full/js/ai_analysis_dialog.js\")",
       "Bash(node --check \"f:/Repos/Repo Drone/rotorflight-blackbox-full/js/ai_tuning_session.js\")",
       "Bash(node --check \"f:/Repos/Repo Drone/rotorflight-blackbox-full/js/ai_analysis.js\")",
-      "Bash(node --check \"f:/Repos/Repo Drone/rotorflight-blackbox-full/css/main.css\")"
+      "Bash(node --check \"f:/Repos/Repo Drone/rotorflight-blackbox-full/css/main.css\")",
+      "Bash(node --check js/tuning_log.js)",
+      "Bash(node --check js/tuning_ai.js)",
+      "Bash(node --check js/tuning_log_dialog.js)",
+      "Bash(npx gulp *)",
+      "PowerShell(Get-Process | Where-Object { $_.ProcessName -match 'rotorflight' } | Select-Object Id, ProcessName, MainWindowTitle, StartTime | Format-Table -AutoSize)",
+      "PowerShell(Get-Process | Where-Object { $_.ProcessName -match 'rotorflight|nw' } | Select-Object Id, ProcessName, MainWindowTitle | Format-Table -AutoSize; Write-Output \"---errors---\"; Get-WinEvent -FilterHashtable @{LogName='Application'; ProviderName='Application Error'; StartTime=\\(Get-Date\\).AddMinutes\\(-5\\)} -ErrorAction SilentlyContinue | Where-Object { $_.Message -match 'rotorflight' } | Select-Object -First 5 TimeCreated, Message | Format-List)"
     ]
   }
 }

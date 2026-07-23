@@ -1,0 +1,208 @@
+"use strict";
+
+/**
+ * Sends step response images + flight log configuration to Claude for PID/filter tuning advice,
+ * using the Anthropic API key/model configured under Settings -> AI Analysis Settings.
+ */
+var TuningAI = TuningAI || {};
+
+(function() {
+
+    function createClient(apiKey) {
+        var Anthropic = require('@anthropic-ai/sdk');
+        return new Anthropic({
+            apiKey: apiKey,
+            dangerouslyAllowBrowser: true, // Desktop app: the user supplies their own key, stored locally
+        });
+    }
+
+    function imageBase64FromDataUrl(dataUrl) {
+        return (dataUrl || '').replace(/^data:image\/\w+;base64,/, '');
+    }
+
+    /**
+     * options: { configSummary, instructions }
+     */
+    TuningAI.buildPromptText = function(options) {
+        var instructions = (options.instructions || '').trim() || '(No specific instructions given - provide general tuning suggestions.)';
+
+        return (
+            'You are helping tune the PID controller of an RC helicopter flight controller running Rotorflight ' +
+            '(forked from Betaflight). Attached is a step response graph generated from a blackbox log, showing ' +
+            'setpoint-vs-gyro tracking (Roll in red, Pitch in green, Yaw in blue) for the 0-500ms period after a ' +
+            'stick input, with 1.0 on the y-axis representing perfect tracking.\n\n' +
+            'Current flight controller configuration extracted from the log:\n' + options.configSummary + '\n\n' +
+            'User instructions: ' + instructions + '\n\n' +
+            'Analyse the attached step response graph and suggest specific, actionable PID and filter changes ' +
+            'to address the user\'s instructions, referencing the actual curve shapes you see (overshoot, ' +
+            'settling time, oscillation, delay) for each axis.\n\n' +
+            'For every change you recommend, clearly state which setting to change in the Rotorflight Configurator ' +
+            'and where to find it, using this format: the exact field name as it appears in the Configurator UI, ' +
+            'the tab/page it lives on (e.g. PID Tuning, Filters, Rates), the current value (from the configuration ' +
+            'above), and the new value you recommend. Do not just describe the change conceptually - name the ' +
+            'actual Configurator setting for the user to go and edit.\n\n' +
+            'Present any PID gain changes grouped by axis in this order: Roll, then Pitch, then Yaw, and within ' +
+            'each axis give the gains in this order: P, I, D.\n\n' +
+            'If earlier messages above contain step response graphs, configuration and analysis from previous ' +
+            'entries in this tuning log, use that history to track what has already been tried and how the ' +
+            'response changed as a result, rather than repeating suggestions that were already applied unless ' +
+            'they still need further adjustment.'
+        );
+    };
+
+    function entryToHistoryContent(entry) {
+        var content = [];
+
+        if (entry.image) {
+            content.push({
+                type: 'image',
+                source: { type: 'base64', media_type: 'image/png', data: imageBase64FromDataUrl(entry.image) },
+            });
+        }
+
+        var text = 'Step response captured ' + entry.timestamp + '\n\nConfiguration:\n' + (entry.config || '(none)');
+        if (entry.notes) {
+            text += '\n\nUser notes: ' + entry.notes;
+        }
+
+        content.push({ type: 'text', text: text });
+
+        return content;
+    }
+
+    function lastAssistantText(entry) {
+        var conversation = (entry.ai && entry.ai.conversation) || [];
+
+        for (var i = conversation.length - 1; i >= 0; i--) {
+            if (conversation[i].role === 'assistant') {
+                return typeof conversation[i].content === 'string' ? conversation[i].content : null;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Turns every entry already in the log into a user/assistant message pair (image + config/notes,
+     * plus that entry's own final AI answer if it has one), so a new request has the whole tuning
+     * log's history as context. Pass excludingEntryId to leave out the entry currently being asked
+     * about (it's supplied separately as the new message, not as history).
+     */
+    TuningAI.buildHistoryMessages = function(log, excludingEntryId) {
+        var messages = [];
+        var entries = (log && log.entries) || [];
+
+        for (var i = 0; i < entries.length; i++) {
+            var entry = entries[i];
+            if (excludingEntryId && entry.id === excludingEntryId) continue;
+
+            messages.push({ role: 'user', content: entryToHistoryContent(entry) });
+
+            var assistantText = lastAssistantText(entry);
+            if (assistantText) {
+                messages.push({ role: 'assistant', content: assistantText });
+            }
+        }
+
+        return messages;
+    };
+
+    function sendMessages(options, messages, onResult, onError) {
+        var client;
+        try {
+            client = createClient(options.apiKey);
+        } catch (e) {
+            onError('Could not load the Anthropic SDK: ' + e.message);
+            return;
+        }
+
+        var model = options.model || 'claude-opus-4-8';
+        var requestParams = {
+            model: model,
+            max_tokens: 4096,
+            messages: messages,
+        };
+
+        // Adaptive thinking isn't supported on every model (e.g. Haiku 4.5) - only request it where it's valid
+        if (model !== 'claude-haiku-4-5') {
+            requestParams.thinking = { type: 'adaptive' };
+        }
+
+        client.beta.messages.create(requestParams).then(function(response) {
+            var text = '';
+            for (var i = 0; i < response.content.length; i++) {
+                if (response.content[i].type === 'text') {
+                    text += response.content[i].text;
+                }
+            }
+            text = text || '(No text response received)';
+
+            var updatedMessages = messages.concat([{ role: 'assistant', content: text }]);
+            onResult(text, updatedMessages);
+        }).catch(function(error) {
+            onError((error && error.message) ? error.message : String(error));
+        });
+    }
+
+    /**
+     * Starts a new tuning-advice conversation about a single entry (its image + config summary),
+     * with the rest of the tuning log's history prepended as context.
+     *
+     * options: { apiKey, model, historyMessages, entry: {image, config}, instructions }
+     * onResult(resultText, entryMessages) - entryMessages is *this entry's own* conversation
+     * (not including historyMessages/repeats of it) - keep it and pass it back into TuningAI.ask()
+     * for follow-ups, and persist it as entry.ai.conversation.
+     */
+    TuningAI.analyze = function(options, onResult, onError) {
+        if (!options.apiKey) {
+            onError('No Anthropic API key configured. Add one under Settings → AI Analysis Settings.');
+            return;
+        }
+
+        var historyMessages = options.historyMessages || [];
+        var content = [];
+
+        if (options.entry.image) {
+            content.push({
+                type: 'image',
+                source: { type: 'base64', media_type: 'image/png', data: imageBase64FromDataUrl(options.entry.image) },
+            });
+        }
+
+        content.push({ type: 'text', text: TuningAI.buildPromptText({ configSummary: options.entry.config, instructions: options.instructions }) });
+
+        var initialMessage = { role: 'user', content: content };
+
+        sendMessages(options, historyMessages.concat([initialMessage]), function(text, updatedMessages) {
+            onResult(text, updatedMessages.slice(historyMessages.length));
+        }, onError);
+    };
+
+    /**
+     * Continues an existing entry's conversation with a follow-up question.
+     *
+     * options: { apiKey, model, historyMessages, messages, question }
+     * `messages` is this entry's own conversation so far (as returned by a previous analyze()/ask() call).
+     * onResult(resultText, entryMessages) - pass the updated entryMessages back in for the next follow-up.
+     */
+    TuningAI.ask = function(options, onResult, onError) {
+        if (!options.apiKey) {
+            onError('No Anthropic API key configured. Add one under Settings → AI Analysis Settings.');
+            return;
+        }
+
+        var question = (options.question || '').trim();
+        if (!question) {
+            onError('Please enter a question.');
+            return;
+        }
+
+        var historyMessages = options.historyMessages || [];
+        var messages = (options.messages || []).concat([{ role: 'user', content: question }]);
+
+        sendMessages(options, historyMessages.concat(messages), function(text, updatedMessages) {
+            onResult(text, updatedMessages.slice(historyMessages.length));
+        }, onError);
+    };
+
+})();
