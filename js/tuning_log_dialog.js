@@ -1,9 +1,10 @@
 "use strict";
 
 /**
- * Dialog controller for the Tuning Log: create/open a TuningLog JSON file, capture step response
- * entries from the currently loaded flight log, flick through past entries, and ask the AI for
- * tuning advice on the current entry (with the rest of the log sent along as history).
+ * Dialog controller for the Tuning Log: create/open a TuningLog JSON file, automatically capture
+ * a step response entry for whichever flight log is currently loaded, flick through past entries,
+ * and ask the AI for tuning advice on the current entry (with the rest of the log sent along as
+ * history).
  *
  * dialog - the modal jQuery element (#dlgTuningLog)
  * getContext - function() -> { flightLog, graph, userSettings }, called on demand since these are
@@ -16,8 +17,7 @@ function TuningLogDialog(dialog, getContext) {
 
     var currentLog = null,
         currentPath = null,
-        selectedIndex = -1, // -1 = the "current flight log" slot; otherwise an index into currentLog.entries
-        draftEntry = null,  // in-memory, not-yet-saved capture shown while selectedIndex === -1
+        selectedIndex = -1, // -1 = the "current flight log" placeholder; otherwise an index into currentLog.entries
         creatingNew = false;
 
     // Header / toolbar
@@ -42,14 +42,11 @@ function TuningLogDialog(dialog, getContext) {
 
     // Main panel
     var titleElem             = $(".tuning-log-entry-title", dialog);
-    var captureBtn              = $(".tuning-log-capture", dialog);
     var noImageElem               = $(".tuning-log-no-image", dialog);
     var imageElem                   = $(".tuning-log-image", dialog);
     var configElem                    = $(".tuning-log-config-summary", dialog);
     var notesBlockElem                  = $(".tuning-log-notes-block", dialog);
     var notesInput                        = $(".tuning-log-notes", dialog);
-    var saveRowElem                         = $(".tuning-log-save-row", dialog);
-    var saveEntryBtn                          = $(".tuning-log-save-entry", dialog);
 
     // Ask AI panel
     var aiPanelElem            = $(".tuning-log-ai-panel", dialog);
@@ -59,9 +56,29 @@ function TuningLogDialog(dialog, getContext) {
     var aiLoadingElem                  = $(".tuning-log-ai-loading", dialog);
     var aiErrorElem                     = $(".tuning-log-ai-error", dialog);
 
+    function isSameDay(a, b) {
+        return a.getFullYear() === b.getFullYear() &&
+            a.getMonth() === b.getMonth() &&
+            a.getDate() === b.getDate();
+    }
+
     function formatTimestamp(iso) {
         try {
-            return new Date(iso).toLocaleString();
+            var d = new Date(iso);
+            var time = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+            var now = new Date();
+            if (isSameDay(d, now)) {
+                return 'Today ' + time;
+            }
+
+            var yesterday = new Date(now);
+            yesterday.setDate(yesterday.getDate() - 1);
+            if (isSameDay(d, yesterday)) {
+                return 'Yesterday ' + time;
+            }
+
+            return d.toLocaleString();
         } catch (e) {
             return iso;
         }
@@ -74,11 +91,7 @@ function TuningLogDialog(dialog, getContext) {
     }
 
     function currentEntry() {
-        return selectedIndex === -1 ? draftEntry : currentLog.entries[selectedIndex];
-    }
-
-    function isSelectionSaved() {
-        return selectedIndex !== -1;
+        return selectedIndex === -1 ? null : currentLog.entries[selectedIndex];
     }
 
     function saveLogToDisk() {
@@ -89,15 +102,36 @@ function TuningLogDialog(dialog, getContext) {
         });
     }
 
-    function maybeDiscardDraft() {
-        if (draftEntry && draftEntry.image) {
-            return confirm('You have an unsaved captured entry. Switching tuning logs will discard it. Continue?');
+    /**
+     * Index of the saved entry that corresponds to the flight log currently open in the main
+     * viewer (matched by the log-derived id - see TuningLog.logTimestamp), or -1 if the open
+     * flight log hasn't been captured into this tuning log yet.
+     */
+    function currentFlightLogEntryIndex() {
+        var context = getContext() || {};
+        if (!context.flightLog || !currentLog) return -1;
+
+        var id = TuningLog.makeId(TuningLog.logTimestamp(context.flightLog.getSysConfig()));
+
+        for (var i = 0; i < currentLog.entries.length; i++) {
+            if (currentLog.entries[i].id === id) return i;
         }
-        return true;
+
+        return -1;
+    }
+
+    /**
+     * The pinned "Current flight log" slot (selectedIndex === -1) is only shown/selectable when
+     * there's nothing to point it at: no flight log open, or one that couldn't be captured. Once
+     * it's been captured, the matching entry itself is the "current" one, so we show that single
+     * entry instead of a duplicate placeholder row.
+     */
+    function pinnedSlotVisible() {
+        return currentFlightLogEntryIndex() === -1;
     }
 
     function displayOrder() {
-        var order = [-1];
+        var order = pinnedSlotVisible() ? [-1] : [];
         for (var i = currentLog.entries.length - 1; i >= 0; i--) order.push(i);
         return order;
     }
@@ -141,28 +175,30 @@ function TuningLogDialog(dialog, getContext) {
 
         var context = getContext() || {};
 
-        var currentLi = $('<li class="ai-session-entry"></li>')
-            .toggleClass('active', selectedIndex === -1)
-            .append($('<span class="ai-session-entry-label"></span>').text('Current flight log'))
-            .append($('<br>'))
-            .append($('<small></small>').text(
-                draftEntry ? 'Unsaved capture' :
-                context.flightLog ? 'Capture a step response →' : 'No flight log open'));
-        currentLi.on('click', function() { selectEntry(-1); });
-        listElem.append(currentLi);
+        if (pinnedSlotVisible()) {
+            var currentLi = $('<li class="ai-session-entry"></li>')
+                .toggleClass('active', selectedIndex === -1)
+                .append($('<span class="ai-session-entry-label"></span>').text('Current flight log'))
+                .append($('<br>'))
+                .append($('<small></small>').text(
+                    context.flightLog ? 'Step response unavailable' : 'No flight log open'));
+            currentLi.on('click', function() { selectEntry(-1); });
+            listElem.append(currentLi);
+        }
 
+        var currentEntryIndex = currentFlightLogEntryIndex();
         var entries = currentLog.entries;
         for (var i = entries.length - 1; i >= 0; i--) {
-            listElem.append(buildEntryListItem(entries[i], i));
+            listElem.append(buildEntryListItem(entries[i], i, i === currentEntryIndex));
         }
     }
 
-    function buildEntryListItem(entry, index) {
+    function buildEntryListItem(entry, index, isCurrent) {
         var li = $('<li class="ai-session-entry"></li>')
             .toggleClass('active', selectedIndex === index)
-            .append($('<span class="ai-session-entry-label"></span>').text(formatTimestamp(entry.timestamp)))
+            .append($('<span class="ai-session-entry-label"></span>').text(isCurrent ? 'Current' : formatTimestamp(entry.timestamp)))
             .append($('<br>'))
-            .append($('<small></small>').text(excerpt(entry.notes, 60) || '(no notes)'));
+            .append($('<small></small>').text(isCurrent ? formatTimestamp(entry.timestamp) : (excerpt(entry.notes, 60) || '(no notes)')));
 
         var deleteBtn = $('<button type="button" class="ai-session-entry-delete" title="Delete entry">&times;</button>');
         deleteBtn.on('click', function(e) {
@@ -179,21 +215,23 @@ function TuningLogDialog(dialog, getContext) {
     function renderMain() {
         var entry = currentEntry();
         var context = getContext() || {};
-        var saved = isSelectionSaved();
+        var isCurrentFlightLog = selectedIndex === -1 || selectedIndex === currentFlightLogEntryIndex();
 
-        titleElem.text(selectedIndex === -1 ? 'Current flight log' : formatTimestamp(entry.timestamp));
-
-        captureBtn.toggle(selectedIndex === -1 && !!context.flightLog && !!context.graph);
+        titleElem.text(
+            selectedIndex === -1 ? 'Current flight log' :
+            isCurrentFlightLog ? 'Current flight log — ' + formatTimestamp(entry.timestamp) :
+            formatTimestamp(entry.timestamp));
 
         noImageElem.toggle(!entry || !entry.image);
+        if (!entry || !entry.image) {
+            noImageElem.text(context.flightLog ? 'The step response panel is not available for this flight log.' : 'No flight log is currently open.');
+        }
         imageElem.toggle(!!(entry && entry.image)).attr('src', (entry && entry.image) || '');
 
         configElem.toggle(!!(entry && entry.config)).text((entry && entry.config) || '');
 
         notesBlockElem.toggle(!!entry);
         notesInput.val((entry && entry.notes) || '');
-
-        saveRowElem.toggle(selectedIndex === -1 && !!draftEntry && !!draftEntry.image);
 
         aiPanelElem.toggle(!!(entry && entry.image));
         aiPromptInput.attr('placeholder', (entry && entry.ai && entry.ai.conversation && entry.ai.conversation.length) ?
@@ -224,8 +262,7 @@ function TuningLogDialog(dialog, getContext) {
 
     /**
      * Captures a step response image + config summary from whatever flight log is currently open
-     * in the main viewer, or returns null if there's nothing to capture. Shared by the manual
-     * "Capture" button and by New Log's auto-capture of the log that was open when it was created.
+     * in the main viewer, or returns null if there's nothing to capture.
      */
     function captureFromContext() {
         var context = getContext() || {};
@@ -246,11 +283,28 @@ function TuningLogDialog(dialog, getContext) {
         };
     }
 
+    /**
+     * Adds an entry for the currently open flight log if it isn't already in the log - there's no
+     * manual "Capture" step, this just runs whenever the dialog needs to be in sync (opening it,
+     * creating/loading a log). Returns true if it actually captured something new, so callers can
+     * decide whether to jump the selection to it.
+     */
+    function ensureCurrentFlightLogCaptured() {
+        if (!currentLog || currentFlightLogEntryIndex() !== -1) return false;
+
+        var capture = captureFromContext();
+        if (!capture) return false;
+
+        TuningLog.addEntry(currentLog, capture);
+        saveLogToDisk();
+
+        return true;
+    }
+
     // ---- New / Open ----
 
     newBtn.click(function(e) {
         e.preventDefault();
-        if (!maybeDiscardDraft()) return;
 
         var context = getContext() || {};
         nameInput.val((context.flightLog && context.flightLog.getSysConfig()['Craft name']) || '');
@@ -292,7 +346,6 @@ function TuningLogDialog(dialog, getContext) {
                 currentLog = log;
                 currentPath = path;
                 selectedIndex = capture ? 0 : -1;
-                draftEntry = null;
                 creatingNew = false;
 
                 prefs.set('tuningLogLastPath', path);
@@ -306,7 +359,6 @@ function TuningLogDialog(dialog, getContext) {
 
     openBtn.click(function(e) {
         e.preventDefault();
-        if (!maybeDiscardDraft()) return;
         openInput[0].click();
     });
 
@@ -322,14 +374,18 @@ function TuningLogDialog(dialog, getContext) {
         TuningLog.loadFromPath(path, function(log) {
             currentLog = log;
             currentPath = path;
-            selectedIndex = -1;
-            draftEntry = null;
             creatingNew = false;
+            selectedIndex = -1;
+
+            if (ensureCurrentFlightLogCaptured()) {
+                selectedIndex = currentFlightLogEntryIndex();
+            }
 
             prefs.set('tuningLogLastPath', path);
             render();
         }, function(err) {
             alert('Could not open the tuning log file: ' + err.message);
+            render(); // fall back to whatever was showing before (the empty state, if nothing was)
         });
     }
 
@@ -357,48 +413,14 @@ function TuningLogDialog(dialog, getContext) {
         selectEntry(order[newPos]);
     }
 
-    // ---- Capture / save / notes ----
-
-    captureBtn.click(function(e) {
-        e.preventDefault();
-
-        if (draftEntry && draftEntry.image && !confirm('Replace the current unsaved capture with a new one?')) return;
-
-        var capture = captureFromContext();
-        if (!capture) {
-            alert('The step response panel is not available for this flight log.');
-            return;
-        }
-
-        draftEntry = capture;
-        selectedIndex = -1;
-        render();
-    });
+    // ---- Notes ----
 
     notesInput.on('change', function() {
         var entry = currentEntry();
         if (!entry) return;
 
         entry.notes = notesInput.val();
-
-        if (isSelectionSaved()) {
-            saveLogToDisk();
-        }
-    });
-
-    saveEntryBtn.click(function(e) {
-        e.preventDefault();
-        if (!draftEntry || !draftEntry.image || !currentLog) return;
-
-        draftEntry.notes = notesInput.val();
-
-        TuningLog.addEntry(currentLog, draftEntry);
         saveLogToDisk();
-
-        selectedIndex = currentLog.entries.length - 1;
-        draftEntry = null;
-
-        render();
     });
 
     // ---- Ask AI ----
@@ -418,7 +440,7 @@ function TuningLogDialog(dialog, getContext) {
         askAiBtn.prop('disabled', true);
 
         var hasConversation = !!(entry.ai && entry.ai.conversation && entry.ai.conversation.length);
-        var historyMessages = TuningAI.buildHistoryMessages(currentLog, isSelectionSaved() ? entry.id : null);
+        var historyMessages = TuningAI.buildHistoryMessages(currentLog, entry.id);
 
         var callOptions = {
             apiKey: settings.aiApiKey,
@@ -431,11 +453,7 @@ function TuningLogDialog(dialog, getContext) {
             entry.ai.model = settings.aiModel;
             entry.ai.conversation = entryMessages;
 
-            if (selectedIndex === -1) {
-                draftEntry.ai = entry.ai;
-            } else {
-                saveLogToDisk();
-            }
+            saveLogToDisk();
 
             aiPromptInput.val('');
             aiLoadingElem.hide();
@@ -467,18 +485,17 @@ function TuningLogDialog(dialog, getContext) {
         if (!currentLog) {
             prefs.get('tuningLogLastPath', function(path) {
                 if (path) {
-                    TuningLog.loadFromPath(path, function(log) {
-                        currentLog = log;
-                        currentPath = path;
-                        render();
-                    }, function() {
-                        render(); // remembered file is gone/unreadable - fall back to the empty state
-                    });
+                    loadFromPath(path);
                 } else {
                     render();
                 }
             });
         } else {
+            // The dialog may have been closed and reopened after a different flight log was
+            // loaded in the main viewer - make sure it's captured before rendering.
+            if (ensureCurrentFlightLogCaptured()) {
+                selectedIndex = currentFlightLogEntryIndex();
+            }
             render();
         }
 
