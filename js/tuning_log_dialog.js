@@ -233,6 +233,7 @@ function TuningLogDialog(dialog, getContext) {
 
         notesBlockElem.toggle(!!entry);
         notesInput.val((entry && entry.notes) || '');
+        notesInput.prop('readonly', !isCurrentFlightLog);
 
         var hasImage = !!(entry && entry.image);
         var hasConversation = !!(entry && entry.ai && entry.ai.conversation && entry.ai.conversation.length);
