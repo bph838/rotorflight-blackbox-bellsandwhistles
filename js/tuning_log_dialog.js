@@ -18,7 +18,8 @@ function TuningLogDialog(dialog, getContext) {
     var currentLog = null,
         currentPath = null,
         selectedIndex = -1, // -1 = the "current flight log" placeholder; otherwise an index into currentLog.entries
-        creatingNew = false;
+        creatingNew = false,
+        configVisible = false;
 
     // Header / toolbar
     var nameElem            = $(".tuning-log-name", dialog);
@@ -42,11 +43,14 @@ function TuningLogDialog(dialog, getContext) {
 
     // Main panel
     var titleElem             = $(".tuning-log-entry-title", dialog);
-    var noImageElem               = $(".tuning-log-no-image", dialog);
-    var imageElem                   = $(".tuning-log-image", dialog);
-    var configElem                    = $(".tuning-log-config-summary", dialog);
-    var notesBlockElem                  = $(".tuning-log-notes-block", dialog);
-    var notesInput                        = $(".tuning-log-notes", dialog);
+    var toggleConfigBtn        = $(".tuning-log-toggle-config", dialog);
+    var copyImageBtn             = $(".tuning-log-copy-image", dialog);
+    var copyPromptBtn              = $(".tuning-log-copy-prompt", dialog);
+    var noImageElem                  = $(".tuning-log-no-image", dialog);
+    var imageElem                      = $(".tuning-log-image", dialog);
+    var configElem                       = $(".tuning-log-config-summary", dialog);
+    var notesBlockElem                     = $(".tuning-log-notes-block", dialog);
+    var notesInput                           = $(".tuning-log-notes", dialog);
 
     // Ask AI panel
     var aiPanelElem            = $(".tuning-log-ai-panel", dialog);
@@ -217,26 +221,30 @@ function TuningLogDialog(dialog, getContext) {
         var entry = currentEntry();
         var context = getContext() || {};
         var isCurrentFlightLog = selectedIndex === -1 || selectedIndex === currentFlightLogEntryIndex();
+        var hasImage = !!(entry && entry.image);
+        var hasConfig = !!(entry && entry.config);
+        var hasConversation = !!(entry && entry.ai && entry.ai.conversation && entry.ai.conversation.length);
 
         titleElem.text(
             selectedIndex === -1 ? 'Current flight log' :
             isCurrentFlightLog ? 'Current flight log — ' + formatTimestamp(entry.timestamp) :
             formatTimestamp(entry.timestamp));
 
-        noImageElem.toggle(!entry || !entry.image);
-        if (!entry || !entry.image) {
+        toggleConfigBtn.toggle(hasConfig).text(configVisible ? 'Hide config' : 'Expand config');
+        copyImageBtn.toggle(hasImage);
+        copyPromptBtn.toggle(hasImage && isCurrentFlightLog);
+
+        noImageElem.toggle(!hasImage);
+        if (!hasImage) {
             noImageElem.text(context.flightLog ? 'The step response panel is not available for this flight log.' : 'No flight log is currently open.');
         }
-        imageElem.toggle(!!(entry && entry.image)).attr('src', (entry && entry.image) || '');
+        imageElem.toggle(hasImage).attr('src', (entry && entry.image) || '');
 
-        configElem.toggle(!!(entry && entry.config)).text((entry && entry.config) || '');
+        configElem.toggle(hasConfig && configVisible).text((entry && entry.config) || '');
 
         notesBlockElem.toggle(!!entry);
         notesInput.val((entry && entry.notes) || '');
         notesInput.prop('readonly', !isCurrentFlightLog);
-
-        var hasImage = !!(entry && entry.image);
-        var hasConversation = !!(entry && entry.ai && entry.ai.conversation && entry.ai.conversation.length);
 
         // Asking is only offered on the entry for the currently open flight log - it doesn't make
         // sense to start a new AI conversation about a past entry. A past conversation is still
@@ -439,6 +447,50 @@ function TuningLogDialog(dialog, getContext) {
 
         entry.notes = notesInput.val();
         saveLogToDisk();
+    });
+
+    // ---- Config toggle / copy buttons ----
+
+    function copyImageToClipboard(imageDataUrl) {
+        try {
+            // With raw left false (the default), NW.js expects the full "data:image/png;base64,..."
+            // URI as-is - captureImage() already returns exactly that.
+            require('nw.gui').Clipboard.get().set(imageDataUrl, 'png');
+        } catch (e) {
+            alert('Could not copy the image: ' + e.message);
+        }
+    }
+
+    function copyTextToClipboard(text) {
+        try {
+            require('nw.gui').Clipboard.get().set(text, 'text');
+        } catch (e) {
+            alert('Could not copy: ' + e.message);
+        }
+    }
+
+    toggleConfigBtn.click(function(e) {
+        e.preventDefault();
+        configVisible = !configVisible;
+        renderMain();
+    });
+
+    copyImageBtn.click(function(e) {
+        e.preventDefault();
+
+        var entry = currentEntry();
+        if (!entry || !entry.image) return;
+
+        copyImageToClipboard(entry.image);
+    });
+
+    copyPromptBtn.click(function(e) {
+        e.preventDefault();
+
+        var entry = currentEntry();
+        if (!entry) return;
+
+        copyTextToClipboard(TuningAI.buildPromptText({ configSummary: entry.config, instructions: aiPromptInput.val() }));
     });
 
     // ---- Ask AI ----
