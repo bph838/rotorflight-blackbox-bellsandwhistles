@@ -63,6 +63,12 @@ function TuningLogDialog(dialog, getContext) {
     var aiLoadingElem                  = $(".tuning-log-ai-loading", dialog);
     var aiErrorElem                     = $(".tuning-log-ai-error", dialog);
 
+    var MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+
+    function pad2(n) {
+        return (n < 10 ? '0' : '') + n;
+    }
+
     function isSameDay(a, b) {
         return a.getFullYear() === b.getFullYear() &&
             a.getMonth() === b.getMonth() &&
@@ -72,7 +78,7 @@ function TuningLogDialog(dialog, getContext) {
     function formatTimestamp(iso) {
         try {
             var d = new Date(iso);
-            var time = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            var time = pad2(d.getHours()) + ':' + pad2(d.getMinutes());
 
             var now = new Date();
             if (isSameDay(d, now)) {
@@ -85,7 +91,7 @@ function TuningLogDialog(dialog, getContext) {
                 return 'Yesterday ' + time;
             }
 
-            return d.toLocaleString();
+            return pad2(d.getDate()) + ' ' + MONTH_NAMES[d.getMonth()] + ' ' + d.getFullYear() + ' ' + time;
         } catch (e) {
             return iso;
         }
