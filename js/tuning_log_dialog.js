@@ -123,7 +123,10 @@ function TuningLogDialog(dialog, getContext) {
 
         emptyElem.toggle(!hasLog && !creatingNew);
         createFormElem.toggle(creatingNew);
-        bodyElem.toggle(hasLog && !creatingNew);
+        // .toggle()/.show() would reset this to display:block (jQuery doesn't know it needs
+        // to be a flex row to lay the sidebar and main panel out side by side), so set the
+        // CSS display value explicitly instead.
+        bodyElem.css('display', (hasLog && !creatingNew) ? 'flex' : 'none');
 
         nameElem.text(hasLog ? currentLog.name : '');
 
