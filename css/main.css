@@ -1950,6 +1950,7 @@ dialog h3 {
 
 .ai-analysis-dialog .ai-session-create-buttons {
     text-align: right;
+    margin-top: 1em;
 }
 
 .ai-analysis-dialog .ai-session-unsaved-warning {
