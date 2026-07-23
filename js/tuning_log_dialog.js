@@ -222,6 +222,30 @@ function TuningLogDialog(dialog, getContext) {
         }
     }
 
+    /**
+     * Captures a step response image + config summary from whatever flight log is currently open
+     * in the main viewer, or returns null if there's nothing to capture. Shared by the manual
+     * "Capture" button and by New Log's auto-capture of the log that was open when it was created.
+     */
+    function captureFromContext() {
+        var context = getContext() || {};
+        if (!context.flightLog || !context.graph) return null;
+
+        var stepResponse = context.graph.getStepResponse();
+        if (!stepResponse) return null;
+
+        stepResponse.plot();
+        var sysConfig = context.flightLog.getSysConfig();
+
+        return {
+            image: stepResponse.captureImage(),
+            config: TuningLog.buildConfigSummary(sysConfig),
+            notes: '',
+            craftName: sysConfig['Craft name'] || '',
+            timestamp: TuningLog.logTimestamp(sysConfig),
+        };
+    }
+
     // ---- New / Open ----
 
     newBtn.click(function(e) {
@@ -259,10 +283,15 @@ function TuningLogDialog(dialog, getContext) {
             $(this).val('');
             if (!path) return;
 
+            var capture = captureFromContext();
+            if (capture) {
+                TuningLog.addEntry(log, capture);
+            }
+
             TuningLog.saveToPath(log, path, function() {
                 currentLog = log;
                 currentPath = path;
-                selectedIndex = -1;
+                selectedIndex = capture ? 0 : -1;
                 draftEntry = null;
                 creatingNew = false;
 
@@ -333,28 +362,15 @@ function TuningLogDialog(dialog, getContext) {
     captureBtn.click(function(e) {
         e.preventDefault();
 
-        var context = getContext() || {};
-        if (!context.flightLog || !context.graph) return;
-
         if (draftEntry && draftEntry.image && !confirm('Replace the current unsaved capture with a new one?')) return;
 
-        var stepResponse = context.graph.getStepResponse();
-        if (!stepResponse) {
+        var capture = captureFromContext();
+        if (!capture) {
             alert('The step response panel is not available for this flight log.');
             return;
         }
 
-        stepResponse.plot();
-        var image = stepResponse.captureImage();
-        var sysConfig = context.flightLog.getSysConfig();
-
-        draftEntry = {
-            image: image,
-            config: TuningLog.buildConfigSummary(sysConfig),
-            notes: '',
-            craftName: sysConfig['Craft name'] || '',
-        };
-
+        draftEntry = capture;
         selectedIndex = -1;
         render();
     });

@@ -62,10 +62,29 @@ var TuningLog = TuningLog || {};
     };
 
     /**
-     * options: { image, config, notes, craftName }
+     * The flight log's own recorded start time (rather than whenever the user happened to click
+     * Capture) so the same flight log always produces the same timestamp/id, wherever it's
+     * captured from - that keeps ids checkable/deduplicable against a given log. Falls back to
+     * the current time for logs that don't carry this header.
+     */
+    TuningLog.logTimestamp = function(sysConfig) {
+        var raw = sysConfig && sysConfig['Log start datetime'];
+
+        if (raw) {
+            var parsed = new Date(raw);
+            if (!isNaN(parsed.getTime())) {
+                return parsed.toISOString();
+            }
+        }
+
+        return new Date().toISOString();
+    };
+
+    /**
+     * options: { image, config, notes, craftName, timestamp }
      */
     TuningLog.addEntry = function(log, options) {
-        var timestamp = new Date().toISOString();
+        var timestamp = options.timestamp || new Date().toISOString();
 
         var entry = {
             id: TuningLog.makeId(timestamp),
