@@ -51,6 +51,7 @@ function TuningLogDialog(dialog, getContext) {
     // Ask AI panel
     var aiPanelElem            = $(".tuning-log-ai-panel", dialog);
     var conversationElem         = $(".tuning-log-ai-conversation", dialog);
+    var aiInputElem                = $(".tuning-log-ai-input", dialog);
     var aiPromptInput              = $(".tuning-log-ai-prompt", dialog);
     var askAiBtn                     = $(".tuning-log-ask-ai", dialog);
     var aiLoadingElem                  = $(".tuning-log-ai-loading", dialog);
@@ -233,8 +234,15 @@ function TuningLogDialog(dialog, getContext) {
         notesBlockElem.toggle(!!entry);
         notesInput.val((entry && entry.notes) || '');
 
-        aiPanelElem.toggle(!!(entry && entry.image));
-        aiPromptInput.attr('placeholder', (entry && entry.ai && entry.ai.conversation && entry.ai.conversation.length) ?
+        var hasImage = !!(entry && entry.image);
+        var hasConversation = !!(entry && entry.ai && entry.ai.conversation && entry.ai.conversation.length);
+
+        // Asking is only offered on the entry for the currently open flight log - it doesn't make
+        // sense to start a new AI conversation about a past entry. A past conversation is still
+        // shown (read-only) if that entry already has one.
+        aiPanelElem.toggle(hasImage && (isCurrentFlightLog || hasConversation));
+        aiInputElem.toggle(hasImage && isCurrentFlightLog);
+        aiPromptInput.attr('placeholder', hasConversation ?
             'Ask a follow-up question…' : 'Anything specific you want help with? (optional)');
         aiErrorElem.hide();
         aiLoadingElem.hide();
@@ -370,7 +378,12 @@ function TuningLogDialog(dialog, getContext) {
         loadFromPath(file.path);
     });
 
-    function loadFromPath(path) {
+    /**
+     * silent - true when this is an automatic reload (e.g. the remembered last-used path on
+     * dialog open) rather than something the user explicitly asked for, so a failure shouldn't
+     * pop up an alert - it just forgets the stale path and falls back to the empty state.
+     */
+    function loadFromPath(path, silent) {
         TuningLog.loadFromPath(path, function(log) {
             currentLog = log;
             currentPath = path;
@@ -384,7 +397,11 @@ function TuningLogDialog(dialog, getContext) {
             prefs.set('tuningLogLastPath', path);
             render();
         }, function(err) {
-            alert('Could not open the tuning log file: ' + err.message);
+            if (silent) {
+                prefs.set('tuningLogLastPath', null);
+            } else {
+                alert('Could not open the tuning log file: ' + err.message);
+            }
             render(); // fall back to whatever was showing before (the empty state, if nothing was)
         });
     }
@@ -485,7 +502,7 @@ function TuningLogDialog(dialog, getContext) {
         if (!currentLog) {
             prefs.get('tuningLogLastPath', function(path) {
                 if (path) {
-                    loadFromPath(path);
+                    loadFromPath(path, true);
                 } else {
                     render();
                 }

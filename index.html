@@ -3203,15 +3203,17 @@
                             <div class="ai-session-details-panel tuning-log-ai-panel" style="display:none;">
                                 <h4>Ask AI for tuning advice</h4>
                                 <div class="tuning-log-ai-conversation"></div>
-                                <textarea class="form-control tuning-log-ai-prompt" rows="2" placeholder="Anything specific you want help with? (optional)"></textarea>
-                                <div class="ai-analysis-copy-buttons" style="margin-top: 0.5em;">
-                                    <button type="button" class="btn btn-primary btn-sm tuning-log-ask-ai">Ask AI</button>
+                                <div class="tuning-log-ai-input" style="display:none;">
+                                    <textarea class="form-control tuning-log-ai-prompt" rows="2" placeholder="Anything specific you want help with? (optional)"></textarea>
+                                    <div class="ai-analysis-copy-buttons" style="margin-top: 0.5em;">
+                                        <button type="button" class="btn btn-primary btn-sm tuning-log-ask-ai">Ask AI</button>
+                                    </div>
+                                    <div class="ai-analysis-loading tuning-log-ai-loading" style="display:none;">
+                                        <div class="ai-analysis-spinner"></div>
+                                        <span>Thinking&hellip;</span>
+                                    </div>
+                                    <div class="alert alert-danger tuning-log-ai-error" style="display:none;"></div>
                                 </div>
-                                <div class="ai-analysis-loading tuning-log-ai-loading" style="display:none;">
-                                    <div class="ai-analysis-spinner"></div>
-                                    <span>Thinking&hellip;</span>
-                                </div>
-                                <div class="alert alert-danger tuning-log-ai-error" style="display:none;"></div>
                             </div>
                         </div>
                     </div>

@@ -111,7 +111,7 @@ var TuningLog = TuningLog || {};
 
         var safeName = (log.name || 'TuningLog').replace(/[^a-z0-9_\-]+/gi, '_');
 
-        return 'TuningLog_' + safeName + '_' + stamp + '.json';
+        return 'RF_TUNING_LOG_' + safeName + '_' + stamp + '.json';
     };
 
     TuningLog.saveToPath = function(log, filePath, onDone, onError) {
