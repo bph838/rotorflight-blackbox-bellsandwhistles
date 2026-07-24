@@ -244,7 +244,7 @@ function TuningLogDialog(dialog, getContext) {
     for (var i = 0; i < currentLog.entries.length; i++) {
       totalCost += entryCost(currentLog.entries[i]);
     }
-    totalCostElem.text(totalCost ? "AI cost: " + formatCost(totalCost) : "");
+    totalCostElem.text(totalCost ? "Total: " + formatCost(totalCost) : "");
 
     renderSidebar();
     renderMain();
@@ -363,7 +363,10 @@ function TuningLogDialog(dialog, getContext) {
       .toggle(hasConfig && configVisible)
       .text((entry && entry.config) || "");
 
-    notesBlockElem.toggle(!!entry);
+    // Past entries are read-only, so there's no point showing an empty notes box for them -
+    // only hide it when there's nothing to read. The current entry always shows it, since
+    // that's where the user would type new notes in.
+    notesBlockElem.toggle(!!entry && (isCurrentFlightLog || !!entry.notes));
     notesInput.val((entry && entry.notes) || "");
     notesInput.prop("readonly", !isCurrentFlightLog);
 
