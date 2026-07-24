@@ -55,7 +55,8 @@
       "WebFetch(domain:nwjs.readthedocs.io)",
       "Bash(node --check js/user_settings_dialog.js)",
       "Bash(node -e \"console.log\\(JSON.stringify\\(require\\('./js/ai_models.json'\\), null, 2\\)\\)\")",
-      "Bash(node --check gulpfile.js)"
+      "Bash(node --check gulpfile.js)",
+      "Bash(node -e \"console.log\\(require\\('./js/ai_models.json'\\).defaultModel\\)\")"
     ]
   }
 }

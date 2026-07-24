@@ -5,7 +5,8 @@ function UserSettingsDialog(dialog, onLoad, onSave) {
         // Private Variables
 
         // js/ai_models.json is the single source of truth for available AI models/pricing/capabilities
-        var aiModels = require('./ai_models.json');
+        // NW.js resolves require() paths relative to index.html, not this file's own directory.
+        var aiModels = require('./js/ai_models.json');
 
         // generate mixer (from Cleanflight Configurator) (note that the mixerConfiguration index starts at 1)
         var mixerList = [

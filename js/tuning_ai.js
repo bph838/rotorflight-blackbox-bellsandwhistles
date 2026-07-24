@@ -11,7 +11,8 @@ var TuningAI = TuningAI || {};
     // js/ai_models.json is the single source of truth for model ids/names/pricing - also read
     // directly by js/tuning_log_dialog.js (display names) and js/user_settings_dialog.js (the
     // model picker).
-    var AI_MODELS = require('./ai_models.json');
+    // NW.js resolves require() paths relative to index.html, not this file's own directory.
+    var AI_MODELS = require('./js/ai_models.json');
     var MODELS_BY_ID = {};
     AI_MODELS.models.forEach(function(m) {
         MODELS_BY_ID[m.id] = m;

@@ -13,7 +13,8 @@
 function TuningLogDialog(dialog, getContext) {
   var marked = require("marked");
   var prefs = new PrefStorage();
-  var AI_MODELS = require("./ai_models.json");
+  // NW.js resolves require() paths relative to index.html, not this file's own directory.
+  var AI_MODELS = require("./js/ai_models.json");
 
   var currentLog = null,
     currentPath = null,
