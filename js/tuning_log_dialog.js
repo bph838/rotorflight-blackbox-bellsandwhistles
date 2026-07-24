@@ -19,7 +19,9 @@ function TuningLogDialog(dialog, getContext) {
     selectedIndex = -1, // -1 = the "current flight log" placeholder; otherwise an index into currentLog.entries
     creatingNew = false,
     configVisible = false,
-    apiKeyBannerDismissed = false;
+    apiKeyBannerDismissed = false,
+    pendingEntryIds = {}; // entry.id -> true while an Ask AI request for that entry is in flight,
+    // so the "Thinking…" state survives switching to another entry and back.
 
   prefs.get("tuningLogApiKeyBannerDismissed", function (dismissed) {
     apiKeyBannerDismissed = !!dismissed;
@@ -323,6 +325,10 @@ function TuningLogDialog(dialog, getContext) {
       entry.ai.conversation &&
       entry.ai.conversation.length
     );
+    // Whether this entry has an Ask AI request in flight right now, wherever it was started
+    // from - checked up front so it can keep the panel/spinner visible even if this entry no
+    // longer matches "the currently open flight log" by the time the response comes back.
+    var isPending = !!(entry && pendingEntryIds[entry.id]);
 
     titleElem.text(
       selectedIndex === -1
@@ -362,7 +368,9 @@ function TuningLogDialog(dialog, getContext) {
     var canAsk = hasImage && isCurrentFlightLog;
     var hasApiKey = !!(context.userSettings || {}).aiApiKey;
 
-    aiPanelElem.toggle(hasImage && (isCurrentFlightLog || hasConversation));
+    aiPanelElem.toggle(
+      hasImage && (isCurrentFlightLog || hasConversation || isPending),
+    );
     aiInputElem.toggle(canAsk && hasApiKey);
     noApiKeyBannerElem.toggle(canAsk && !hasApiKey && !apiKeyBannerDismissed);
     // Once a conversation exists, keep showing the model that actually answered it, even
@@ -379,9 +387,10 @@ function TuningLogDialog(dialog, getContext) {
         ? "Ask a follow-up question…"
         : "Anything specific you want help with? (optional)",
     );
+
     aiErrorElem.hide();
-    aiLoadingElem.hide();
-    askAiBtn.prop("disabled", false);
+    aiLoadingElem.toggle(isPending);
+    askAiBtn.prop("disabled", isPending);
 
     renderConversation(entry);
   }
@@ -665,9 +674,10 @@ function TuningLogDialog(dialog, getContext) {
     var settings = context.userSettings || {};
     var promptText = aiPromptInput.val();
 
-    aiErrorElem.hide();
-    aiLoadingElem.show();
-    askAiBtn.prop("disabled", true);
+    // Keyed by entry id (not just the currently-viewed entry) so the "Thinking…" state is
+    // still there if the user switches to a different entry and comes back to this one.
+    pendingEntryIds[entry.id] = true;
+    renderMain();
 
     var hasConversation = !!(
       entry.ai &&
@@ -683,6 +693,8 @@ function TuningLogDialog(dialog, getContext) {
     };
 
     function onResult(text, entryMessages, costUsd) {
+      delete pendingEntryIds[entry.id];
+
       entry.ai = entry.ai || {};
       entry.ai.model = settings.aiModel;
       entry.ai.conversation = entryMessages;
@@ -690,17 +702,26 @@ function TuningLogDialog(dialog, getContext) {
 
       saveLogToDisk();
 
-      aiPromptInput.val("");
+      // aiPromptInput is a single shared textarea, not per-entry - only worth clearing it if
+      // we're still looking at the entry this response belongs to.
+      if (currentEntry() === entry) {
+        aiPromptInput.val("");
+      }
+
       // Full re-render (not just the conversation) so the cost badge on this entry's
       // sidebar row and the total-cost figure in the header pick up the new spend.
       render();
-      aiPromptInput.attr("placeholder", "Ask a follow-up question…");
     }
 
     function onError(message) {
-      aiLoadingElem.hide();
-      askAiBtn.prop("disabled", false);
-      aiErrorElem.text(message).show();
+      delete pendingEntryIds[entry.id];
+      render();
+
+      // Only worth surfacing the error inline if we're still looking at the entry it belongs
+      // to - if the user has since switched entries, the pending indicator just quietly clears.
+      if (currentEntry() === entry) {
+        aiErrorElem.text(message).show();
+      }
     }
 
     if (hasConversation) {
