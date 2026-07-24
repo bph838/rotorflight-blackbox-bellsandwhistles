@@ -62,7 +62,7 @@ var TuningAI = TuningAI || {};
             'stick input, with 1.0 on the y-axis representing perfect tracking.\n\n' +
             'Current flight controller configuration extracted from the log:\n' + options.configSummary + '\n\n' +
             'User instructions: ' + instructions + '\n\n' +
-            'Analyse the attached step response graph and suggest specific, actionable PID and filter changes ' +
+            'Analyse the attached step response graph and suggest specific, actionable PID changes ' +
             'to address the user\'s instructions, referencing the actual curve shapes you see (overshoot, ' +
             'settling time, oscillation, delay) for each axis.\n\n'
         );
