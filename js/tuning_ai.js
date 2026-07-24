@@ -8,6 +8,17 @@ var TuningAI = TuningAI || {};
 
 (function() {
 
+    // js/ai_models.json is the single source of truth for model ids/names/pricing - also read
+    // directly by js/tuning_log_dialog.js (display names) and js/user_settings_dialog.js (the
+    // model picker).
+    var AI_MODELS = require('./ai_models.json');
+    var MODELS_BY_ID = {};
+    AI_MODELS.models.forEach(function(m) {
+        MODELS_BY_ID[m.id] = m;
+    });
+
+    TuningAI.DEFAULT_MODEL = AI_MODELS.defaultModel;
+
     function createClient(apiKey) {
         var Anthropic = require('@anthropic-ai/sdk');
         return new Anthropic({
@@ -20,26 +31,19 @@ var TuningAI = TuningAI || {};
         return (dataUrl || '').replace(/^data:image\/\w+;base64,/, '');
     }
 
-    // USD per million tokens (standard list pricing, not time-limited introductory rates).
-    TuningAI.PRICING = {
-        'claude-opus-4-8':  { input: 5.00, output: 25.00 },
-        'claude-sonnet-5':  { input: 3.00, output: 15.00 },
-        'claude-haiku-4-5': { input: 1.00, output: 5.00 },
-    };
-
     /**
      * Estimated cost in USD for one API response, from its `usage` object. Cache writes are
      * priced at the 5-minute-TTL premium (1.25x input) since that's what this app requests.
      */
     TuningAI.estimateCostUsd = function(model, usage) {
-        var pricing = TuningAI.PRICING[model];
+        var pricing = MODELS_BY_ID[model];
         if (!pricing || !usage) return 0;
 
         var cost = 0;
-        cost += ((usage.input_tokens || 0) / 1e6) * pricing.input;
-        cost += ((usage.output_tokens || 0) / 1e6) * pricing.output;
-        cost += ((usage.cache_creation_input_tokens || 0) / 1e6) * pricing.input * 1.25;
-        cost += ((usage.cache_read_input_tokens || 0) / 1e6) * pricing.input * 0.1;
+        cost += ((usage.input_tokens || 0) / 1e6) * pricing.pricePerMillionInputTokens;
+        cost += ((usage.output_tokens || 0) / 1e6) * pricing.pricePerMillionOutputTokens;
+        cost += ((usage.cache_creation_input_tokens || 0) / 1e6) * pricing.pricePerMillionInputTokens * 1.25;
+        cost += ((usage.cache_read_input_tokens || 0) / 1e6) * pricing.pricePerMillionInputTokens * 0.1;
 
         return cost;
     };
@@ -140,7 +144,7 @@ var TuningAI = TuningAI || {};
             return;
         }
 
-        var model = options.model || 'claude-sonnet-5';
+        var model = options.model || TuningAI.DEFAULT_MODEL;
         var requestParams = {
             model: model,
             max_tokens: 4096,
@@ -148,7 +152,8 @@ var TuningAI = TuningAI || {};
         };
 
         // Adaptive thinking isn't supported on every model (e.g. Haiku 4.5) - only request it where it's valid
-        if (model !== 'claude-haiku-4-5') {
+        var modelInfo = MODELS_BY_ID[model];
+        if (!modelInfo || modelInfo.supportsAdaptiveThinking) {
             requestParams.thinking = { type: 'adaptive' };
         }
 

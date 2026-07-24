@@ -13,6 +13,7 @@
 function TuningLogDialog(dialog, getContext) {
   var marked = require("marked");
   var prefs = new PrefStorage();
+  var AI_MODELS = require("./ai_models.json");
 
   var currentLog = null,
     currentPath = null,
@@ -133,14 +134,15 @@ function TuningLogDialog(dialog, getContext) {
     return "$" + usd.toFixed(usd < 1 ? 4 : 2);
   }
 
-  var MODEL_DISPLAY_NAMES = {
-    "claude-opus-4-8": "Claude Opus 4.8",
-    "claude-sonnet-5": "Claude Sonnet 5",
-    "claude-haiku-4-5": "Claude Haiku 4.5",
-  };
+  // js/ai_models.json is the single source of truth for model ids/names/pricing.
+  var MODELS_BY_ID = {};
+  AI_MODELS.models.forEach(function (m) {
+    MODELS_BY_ID[m.id] = m;
+  });
 
   function modelDisplayName(id) {
-    return (id && MODEL_DISPLAY_NAMES[id]) || id || "no model configured";
+    var model = id && MODELS_BY_ID[id];
+    return (model && model.displayName) || id || "no model configured";
   }
 
   function entryCost(entry) {

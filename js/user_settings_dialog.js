@@ -4,6 +4,9 @@ function UserSettingsDialog(dialog, onLoad, onSave) {
 
         // Private Variables
 
+        // js/ai_models.json is the single source of truth for available AI models/pricing/capabilities
+        var aiModels = require('./ai_models.json');
+
         // generate mixer (from Cleanflight Configurator) (note that the mixerConfiguration index starts at 1)
         var mixerList = [
              {name: 'Tricopter',       model: 'tricopter',    image: 'tri',                                defaultMotorOrder: [0, 1, 2],                                 defaultYawOffset: -Math.PI / 2},
@@ -66,7 +69,7 @@ function UserSettingsDialog(dialog, onLoad, onSave) {
                 spectrumType        : 0,                // By default, frequency Spectrum
                 overdrawSpectrumType: 0,                // By default, show all filters
                 aiApiKey                        : '',                        // Anthropic API key used by the AI Analyse feature
-                aiModel                        : 'claude-sonnet-5',        // Anthropic model used by the AI Analyse feature
+                aiModel                        : aiModels.defaultModel,        // Anthropic model used by the AI Analyse feature
                 aiAnalysisInstructions        : '',                        // Last-used instructions for the AI Analyse feature
                 craft                                : {
                                                                         left  : '15%',        // position from left (as a percentage of width)
@@ -220,6 +223,14 @@ function UserSettingsDialog(dialog, onLoad, onSave) {
     var mixer_list_e = $('select.mixerList');
     for (var i = 0; i < mixerList.length; i++) {
         mixer_list_e.append('<option value="' + (i + 1) + '">' + mixerList[i].name + '</option>');
+    }
+
+    // Setup the AI model list from js/ai_models.json
+    var ai_model_list_e = $('.ai-model-select');
+    for (var j = 0; j < aiModels.models.length; j++) {
+        var aiModel = aiModels.models[j];
+        var label = aiModel.displayName + (aiModel.description ? ' (' + aiModel.description + ')' : '');
+        ai_model_list_e.append($('<option></option>').attr('value', aiModel.id).text(label));
     }
 
         function mixerListSelection(val) {
@@ -385,7 +396,7 @@ function UserSettingsDialog(dialog, onLoad, onSave) {
                         }
 
                         $(".ai-api-key-input").val(currentSettings.aiApiKey || '');
-                        $(".ai-model-select").val(currentSettings.aiModel || 'claude-opus-4-8');
+                        $(".ai-model-select").val(currentSettings.aiModel || aiModels.defaultModel);
 
                         if(currentSettings.legendUnits!=null) {
                                 // set the toggle switch

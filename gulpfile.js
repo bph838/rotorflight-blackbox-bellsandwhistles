@@ -246,6 +246,7 @@ function dist() {
         './js/graph_stepresponse.js',
         './js/graph_stepresponse_calc.js',
         './js/graph_stepresponse_plot.js',
+        './js/ai_models.json',
         './js/tuning_log.js',
         './js/tuning_ai.js',
         './js/tuning_log_dialog.js',

@@ -52,7 +52,10 @@
       "Bash(npx gulp *)",
       "PowerShell(Get-Process | Where-Object { $_.ProcessName -match 'rotorflight' } | Select-Object Id, ProcessName, MainWindowTitle, StartTime | Format-Table -AutoSize)",
       "PowerShell(Get-Process | Where-Object { $_.ProcessName -match 'rotorflight|nw' } | Select-Object Id, ProcessName, MainWindowTitle | Format-Table -AutoSize; Write-Output \"---errors---\"; Get-WinEvent -FilterHashtable @{LogName='Application'; ProviderName='Application Error'; StartTime=\\(Get-Date\\).AddMinutes\\(-5\\)} -ErrorAction SilentlyContinue | Where-Object { $_.Message -match 'rotorflight' } | Select-Object -First 5 TimeCreated, Message | Format-List)",
-      "WebFetch(domain:nwjs.readthedocs.io)"
+      "WebFetch(domain:nwjs.readthedocs.io)",
+      "Bash(node --check js/user_settings_dialog.js)",
+      "Bash(node -e \"console.log\\(JSON.stringify\\(require\\('./js/ai_models.json'\\), null, 2\\)\\)\")",
+      "Bash(node --check gulpfile.js)"
     ]
   }
 }
