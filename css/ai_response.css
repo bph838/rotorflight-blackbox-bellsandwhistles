@@ -1,0 +1,148 @@
+/*
+ * Appearance of AI-generated tuning advice inside the Tuning Log dialog
+ * (js/tuning_log_dialog.js, index.html #dlgTuningLog).
+ *
+ * Everything the AI writes is markdown, rendered to HTML by `marked` into
+ * ".ai-analysis-result", and the user's own follow-up questions are rendered
+ * into ".ai-analysis-turn-user" - both live inside ".ai-analysis-turn"
+ * blocks, one per conversation turn. This file only covers the appearance
+ * of that content; layout/sizing of the dialog itself lives in main.css.
+ *
+ * Edit the variables below to re-theme it.
+ */
+
+:root {
+    --ai-response-accent: #2f6fa5;
+    --ai-response-accent-dark: #1f4d78;
+    --ai-response-table-header-bg: #2f6fa5;
+    --ai-response-table-header-text: #ffffff;
+    --ai-response-table-stripe: #eef4fa;
+    --ai-response-table-hover: #dcebf7;
+    --ai-response-table-border: #c7d9e8;
+    --ai-response-code-bg: rgba(47, 111, 165, 0.09);
+    --ai-response-blockquote-bg: #f2f7fb;
+    --ai-response-user-turn-color: #6a6f76;
+}
+
+.ai-analysis-dialog .ai-analysis-turn + .ai-analysis-turn {
+    margin-top: 1em;
+    padding-top: 1em;
+    border-top: 1px solid rgba(0, 0, 0, 0.12);
+}
+
+.ai-analysis-dialog .ai-analysis-turn-user {
+    white-space: pre-wrap;
+    font-style: italic;
+    color: var(--ai-response-user-turn-color);
+}
+
+.ai-analysis-dialog .ai-analysis-turn-user::before {
+    content: "You: ";
+    font-style: normal;
+    font-weight: bold;
+    color: var(--ai-response-accent-dark);
+}
+
+.ai-analysis-dialog .ai-analysis-result > *:first-child {
+    margin-top: 0;
+}
+
+.ai-analysis-dialog .ai-analysis-result > *:last-child {
+    margin-bottom: 0;
+}
+
+/* Headings act as section dividers within a long tuning writeup */
+.ai-analysis-dialog .ai-analysis-result h1,
+.ai-analysis-dialog .ai-analysis-result h2 {
+    color: var(--ai-response-accent-dark);
+    padding-bottom: 0.25em;
+    border-bottom: 2px solid var(--ai-response-accent);
+}
+
+.ai-analysis-dialog .ai-analysis-result h3,
+.ai-analysis-dialog .ai-analysis-result h4 {
+    color: var(--ai-response-accent-dark);
+}
+
+.ai-analysis-dialog .ai-analysis-result strong {
+    color: var(--ai-response-accent-dark);
+}
+
+.ai-analysis-dialog .ai-analysis-result blockquote {
+    margin: 0.75em 0;
+    padding: 0.5em 1em;
+    background-color: var(--ai-response-blockquote-bg);
+    border-left: 4px solid var(--ai-response-accent);
+    color: #555;
+}
+
+.ai-analysis-dialog .ai-analysis-result hr {
+    border: none;
+    border-top: 2px solid var(--ai-response-table-border);
+    margin: 1em 0;
+}
+
+.ai-analysis-dialog .ai-analysis-result code {
+    background-color: var(--ai-response-code-bg);
+    color: var(--ai-response-accent-dark);
+    padding: 0.15em 0.3em;
+    border-radius: 3px;
+}
+
+.ai-analysis-dialog .ai-analysis-result pre code {
+    display: block;
+    padding: 0.75em;
+    overflow-x: auto;
+    color: inherit;
+    border-left: 3px solid var(--ai-response-accent);
+}
+
+/* Tables (e.g. "Setting / Current / Recommended / Rationale") are the main
+   payload of most tuning advice, so they get the strongest visual treatment. */
+.ai-analysis-dialog .ai-analysis-result table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    margin: 0.75em 0;
+    font-size: 0.95em;
+    border: 1px solid var(--ai-response-table-border);
+    border-radius: 6px;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.ai-analysis-dialog .ai-analysis-result table th,
+.ai-analysis-dialog .ai-analysis-result table td {
+    border-bottom: 1px solid var(--ai-response-table-border);
+    border-right: 1px solid var(--ai-response-table-border);
+    padding: 0.5em 0.7em;
+    text-align: left;
+    vertical-align: top;
+}
+
+.ai-analysis-dialog .ai-analysis-result table th:last-child,
+.ai-analysis-dialog .ai-analysis-result table td:last-child {
+    border-right: none;
+}
+
+.ai-analysis-dialog .ai-analysis-result table tr:last-child td {
+    border-bottom: none;
+}
+
+.ai-analysis-dialog .ai-analysis-result table th {
+    background-color: var(--ai-response-table-header-bg);
+    color: var(--ai-response-table-header-text);
+    font-weight: bold;
+}
+
+.ai-analysis-dialog .ai-analysis-result table tr:nth-child(even) td {
+    background-color: #ffffff;
+}
+
+.ai-analysis-dialog .ai-analysis-result table tr:nth-child(odd) td {
+    background-color: var(--ai-response-table-stripe);
+}
+
+.ai-analysis-dialog .ai-analysis-result table tr:hover td {
+    background-color: var(--ai-response-table-hover);
+}

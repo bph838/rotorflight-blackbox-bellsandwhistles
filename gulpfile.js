@@ -213,6 +213,7 @@ function clean_cache() {
 function dist() {
     var distSources = [
         // CSS files
+        './css/ai_response.css',
         './css/header_dialog.css',
         './css/jquery.nouislider.min.css',
         './css/keys_dialog.css',

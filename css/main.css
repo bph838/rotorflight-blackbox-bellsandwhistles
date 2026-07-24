@@ -2005,70 +2005,8 @@ dialog h3 {
     border-radius: 4px;
 }
 
-.ai-analysis-dialog .ai-analysis-result > *:first-child {
-    margin-top: 0;
-}
-
-.ai-analysis-dialog .ai-analysis-result > *:last-child {
-    margin-bottom: 0;
-}
-
-.ai-analysis-dialog .ai-analysis-result code {
-    background-color: rgba(0,0,0,0.06);
-    padding: 0.15em 0.3em;
-    border-radius: 3px;
-}
-
-.ai-analysis-dialog .ai-analysis-result pre code {
-    display: block;
-    padding: 0.75em;
-    overflow-x: auto;
-}
-
-.ai-analysis-dialog .ai-analysis-result table {
-    width: 100%;
-    border-collapse: collapse;
-    margin: 0.75em 0;
-    font-size: 0.95em;
-}
-
-.ai-analysis-dialog .ai-analysis-result table th,
-.ai-analysis-dialog .ai-analysis-result table td {
-    border: 1px solid #ddd;
-    padding: 0.4em 0.6em;
-    text-align: left;
-    vertical-align: top;
-}
-
-.ai-analysis-dialog .ai-analysis-result table th {
-    background-color: #eaeaea;
-    font-weight: bold;
-}
-
-.ai-analysis-dialog .ai-analysis-result table tr:nth-child(even) {
-    background-color: #fff;
-}
-
-.ai-analysis-dialog .ai-analysis-result table tr:nth-child(odd) {
-    background-color: #f2f2f2;
-}
-
-.ai-analysis-dialog .ai-analysis-turn + .ai-analysis-turn {
-    margin-top: 1em;
-    padding-top: 1em;
-    border-top: 1px solid rgba(0, 0, 0, 0.12);
-}
-
-.ai-analysis-dialog .ai-analysis-turn-user {
-    white-space: pre-wrap;
-    font-style: italic;
-}
-
-.ai-analysis-dialog .ai-analysis-turn-user::before {
-    content: "You: ";
-    font-style: normal;
-    font-weight: bold;
-}
+/* The appearance of the rendered AI response/table/conversation-turn content itself lives in
+   css/ai_response.css, not here - that file only covers the dialog's own layout/chrome. */
 
 .ai-analysis-dialog .ai-analysis-followup-send {
     margin-top: 0.5em;
