@@ -3207,13 +3207,16 @@
                             </div>
 
                             <div class="ai-session-details-panel tuning-log-ai-panel" style="display:none;">
-                                <h4>Ask AI for tuning advice</h4>
-                                <div class="tuning-log-ai-model" style="margin-bottom: 0.5em; color: #888; font-size: 0.85em;"></div>
+                                <h4>Ask AI for tuning advice
+                                    <span class="glyphicon glyphicon-question-sign" data-toggle="tooltip" title="Sends the step response image and configuration for this entry, plus whatever you type below. As context, it also sends the images, configs, notes and past AI answers from every other entry already saved in this tuning log." style="font-size: 0.65em; color: #999; cursor: help; margin-left: 0.4em; vertical-align: middle;"></span>
+                                </h4>
+                               
                                 <div class="tuning-log-ai-conversation"></div>
                                 <div class="tuning-log-ai-input" style="display:none;">
                                     <textarea class="form-control tuning-log-ai-prompt" rows="2" placeholder="Anything specific you want help with? (optional)"></textarea>
-                                    <div class="ai-analysis-copy-buttons" style="margin-top: 0.5em;">
+                                    <div class="ai-analysis-copy-buttons" style="margin-top: 0.5em; align-items: center;">
                                         <button type="button" class="btn btn-primary btn-sm tuning-log-ask-ai">Ask AI</button>
+                                        <div class="tuning-log-ai-model" style="color: #888; font-size: 0.85em;"></div>
                                     </div>
                                     <div class="ai-analysis-loading tuning-log-ai-loading" style="display:none;">
                                         <div class="ai-analysis-spinner"></div>
