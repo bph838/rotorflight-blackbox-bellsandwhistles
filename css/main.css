@@ -1555,6 +1555,14 @@ html.isINAV input[type="checkbox"].ios-switch:checked + div > div {
 	box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(8, 80, 172,1);
 }
 
+/* Tuning Log "Ask AI" panel - the track div's default `display: inherit` otherwise picks up
+   the label's own `display: block`, dropping the switch (and the tooltip icon after it) onto
+   their own lines instead of sitting next to the "Expert mode" text. */
+.tuning-log-ai-expert-mode-label input.ios-switch + div {
+	display: inline-block;
+	vertical-align: middle;
+}
+
 html.isBF .config-graph h4 span:first-child,
 html.isBF .log-graph-config h3 span {
     background-image: linear-gradient(to bottom,#fff8e9 0,#ffbb00 100%);

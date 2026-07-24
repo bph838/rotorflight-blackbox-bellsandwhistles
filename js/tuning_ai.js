@@ -50,12 +50,12 @@ var TuningAI = TuningAI || {};
     };
 
     /**
-     * options: { configSummary, instructions }
+     * options: { configSummary, instructions, expertMode }
      */
     TuningAI.buildPromptText = function(options) {
         var instructions = (options.instructions || '').trim() || '(No specific instructions given - provide general tuning suggestions.)';
 
-        return (
+        var text = (
             'You are helping tune the PID controller of an RC helicopter flight controller running Rotorflight ' +
             '(forked from Betaflight). Attached is a step response graph generated from a blackbox log, showing ' +
             'setpoint-vs-gyro tracking (Roll in red, Pitch in green, Yaw in blue) for the 0-500ms period after a ' +
@@ -64,7 +64,21 @@ var TuningAI = TuningAI || {};
             'User instructions: ' + instructions + '\n\n' +
             'Analyse the attached step response graph and suggest specific, actionable PID and filter changes ' +
             'to address the user\'s instructions, referencing the actual curve shapes you see (overshoot, ' +
-            'settling time, oscillation, delay) for each axis.\n\n' +
+            'settling time, oscillation, delay) for each axis.\n\n'
+        );
+
+        if (options.expertMode) {
+            text += (
+                'Expert mode is enabled: beyond PID and filter changes, also review the rest of the configuration ' +
+                'above for other settings worth adjusting - rate profiles, feedforward, TPA (throttle PID ' +
+                'attenuation), I-term relax, RPM filtering, governor/collective settings, voltage sag ' +
+                'compensation, mixer settings, and anything else that looks misconfigured or suboptimal given the ' +
+                'behaviour shown in the step response. Flag these in addition to, not instead of, any PID/filter ' +
+                'changes.\n\n'
+            );
+        }
+
+        text += (
             'For every change you recommend, clearly state which setting to change in the Rotorflight Configurator ' +
             'and where to find it, using this format: the exact field name as it appears in the Configurator UI, ' +
             'the tab/page it lives on (e.g. PID Tuning, Filters, Rates), the current value (from the configuration ' +
@@ -77,6 +91,8 @@ var TuningAI = TuningAI || {};
             'response changed as a result, rather than repeating suggestions that were already applied unless ' +
             'they still need further adjustment.'
         );
+
+        return text;
     };
 
     function entryToHistoryContent(entry) {
@@ -179,7 +195,7 @@ var TuningAI = TuningAI || {};
      * Starts a new tuning-advice conversation about a single entry (its image + config summary),
      * with the rest of the tuning log's history prepended as context.
      *
-     * options: { apiKey, model, historyMessages, entry: {image, config}, instructions }
+     * options: { apiKey, model, historyMessages, entry: {image, config}, instructions, expertMode }
      * onResult(resultText, entryMessages, costUsd) - entryMessages is *this entry's own*
      * conversation (not including historyMessages/repeats of it) - keep it and pass it back into
      * TuningAI.ask() for follow-ups, and persist it as entry.ai.conversation. costUsd is this
@@ -201,7 +217,7 @@ var TuningAI = TuningAI || {};
             });
         }
 
-        content.push({ type: 'text', text: TuningAI.buildPromptText({ configSummary: options.entry.config, instructions: options.instructions }) });
+        content.push({ type: 'text', text: TuningAI.buildPromptText({ configSummary: options.entry.config, instructions: options.instructions, expertMode: options.expertMode }) });
 
         var initialMessage = { role: 'user', content: content };
 

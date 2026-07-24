@@ -68,6 +68,8 @@ function TuningLogDialog(dialog, getContext) {
   var noApiKeyBannerElem = $(".tuning-log-no-api-key-banner", dialog);
   var dismissApiKeyBannerBtn = $(".tuning-log-no-api-key-dismiss", dialog);
   var aiInputElem = $(".tuning-log-ai-input", dialog);
+  var expertModeLabelElem = $(".tuning-log-ai-expert-mode-label", dialog);
+  var expertModeCheckbox = $(".tuning-log-ai-expert-mode", dialog);
   var aiPromptInput = $(".tuning-log-ai-prompt", dialog);
   var askAiBtn = $(".tuning-log-ask-ai", dialog);
   var aiLoadingElem = $(".tuning-log-ai-loading", dialog);
@@ -375,6 +377,9 @@ function TuningLogDialog(dialog, getContext) {
       hasImage && (isCurrentFlightLog || hasConversation || isPending),
     );
     aiInputElem.toggle(canAsk && hasApiKey);
+    // Expert mode only affects the initial analysis prompt, not follow-up questions, so hide
+    // it once a conversation is already underway.
+    expertModeLabelElem.toggle(canAsk && hasApiKey && !hasConversation);
     noApiKeyBannerElem.toggle(canAsk && !hasApiKey && !apiKeyBannerDismissed);
     // Once a conversation exists, keep showing the model that actually answered it, even
     // if Settings has since been changed to a different model.
@@ -654,11 +659,20 @@ function TuningLogDialog(dialog, getContext) {
       TuningAI.buildPromptText({
         configSummary: entry.config,
         instructions: aiPromptInput.val(),
+        expertMode: expertModeCheckbox.is(":checked"),
       }),
     );
   });
 
   // ---- Ask AI ----
+
+  prefs.get("tuningLogAiExpertMode", function (expertMode) {
+    expertModeCheckbox.prop("checked", !!expertMode);
+  });
+
+  expertModeCheckbox.change(function () {
+    prefs.set("tuningLogAiExpertMode", expertModeCheckbox.is(":checked"));
+  });
 
   dismissApiKeyBannerBtn.click(function (e) {
     e.preventDefault();
@@ -693,6 +707,7 @@ function TuningLogDialog(dialog, getContext) {
       apiKey: settings.aiApiKey,
       model: settings.aiModel,
       historyMessages: historyMessages,
+      expertMode: expertModeCheckbox.is(":checked"),
     };
 
     function onResult(text, entryMessages, costUsd) {
