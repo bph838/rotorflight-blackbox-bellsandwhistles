@@ -3212,10 +3212,14 @@
                                 </h4>
                                
                                 <div class="tuning-log-ai-conversation"></div>
+                                <div class="alert alert-warning tuning-log-no-api-key-banner" style="display:none;">
+                                    <button type="button" class="close tuning-log-no-api-key-dismiss" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                                    Asking AI needs an Anthropic API key. Add one under Settings &rarr; AI Analysis Settings.
+                                </div>
                                 <div class="tuning-log-ai-input" style="display:none;">
                                     <textarea class="form-control tuning-log-ai-prompt" rows="2" placeholder="Anything specific you want help with? (optional)"></textarea>
                                     <div class="ai-analysis-copy-buttons" style="margin-top: 0.5em; align-items: center;">
-                                        <button type="button" class="btn btn-primary btn-sm tuning-log-ask-ai">Ask AI</button>
+                                        <button type="button" class="btn btn-primary btn-sm tuning-log-ask-ai">AI Analysis</button>
                                         <div class="tuning-log-ai-model" style="color: #888; font-size: 0.85em;"></div>
                                     </div>
                                     <div class="ai-analysis-loading tuning-log-ai-loading" style="display:none;">

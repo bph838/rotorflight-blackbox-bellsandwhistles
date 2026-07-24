@@ -66,7 +66,7 @@ function UserSettingsDialog(dialog, onLoad, onSave) {
                 spectrumType        : 0,                // By default, frequency Spectrum
                 overdrawSpectrumType: 0,                // By default, show all filters
                 aiApiKey                        : '',                        // Anthropic API key used by the AI Analyse feature
-                aiModel                        : 'claude-opus-4-8',        // Anthropic model used by the AI Analyse feature
+                aiModel                        : 'claude-sonnet-5',        // Anthropic model used by the AI Analyse feature
                 aiAnalysisInstructions        : '',                        // Last-used instructions for the AI Analyse feature
                 craft                                : {
                                                                         left  : '15%',        // position from left (as a percentage of width)

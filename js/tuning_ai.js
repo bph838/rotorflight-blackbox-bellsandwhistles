@@ -140,7 +140,7 @@ var TuningAI = TuningAI || {};
             return;
         }
 
-        var model = options.model || 'claude-opus-4-8';
+        var model = options.model || 'claude-sonnet-5';
         var requestParams = {
             model: model,
             max_tokens: 4096,

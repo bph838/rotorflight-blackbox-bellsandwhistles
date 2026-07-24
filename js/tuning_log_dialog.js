@@ -18,7 +18,12 @@ function TuningLogDialog(dialog, getContext) {
     currentPath = null,
     selectedIndex = -1, // -1 = the "current flight log" placeholder; otherwise an index into currentLog.entries
     creatingNew = false,
-    configVisible = false;
+    configVisible = false,
+    apiKeyBannerDismissed = false;
+
+  prefs.get("tuningLogApiKeyBannerDismissed", function (dismissed) {
+    apiKeyBannerDismissed = !!dismissed;
+  });
 
   // Header / toolbar
   var nameElem = $(".tuning-log-name", dialog);
@@ -56,6 +61,8 @@ function TuningLogDialog(dialog, getContext) {
   var aiPanelElem = $(".tuning-log-ai-panel", dialog);
   var aiModelElem = $(".tuning-log-ai-model", dialog);
   var conversationElem = $(".tuning-log-ai-conversation", dialog);
+  var noApiKeyBannerElem = $(".tuning-log-no-api-key-banner", dialog);
+  var dismissApiKeyBannerBtn = $(".tuning-log-no-api-key-dismiss", dialog);
   var aiInputElem = $(".tuning-log-ai-input", dialog);
   var aiPromptInput = $(".tuning-log-ai-prompt", dialog);
   var askAiBtn = $(".tuning-log-ask-ai", dialog);
@@ -352,8 +359,12 @@ function TuningLogDialog(dialog, getContext) {
     // Asking is only offered on the entry for the currently open flight log - it doesn't make
     // sense to start a new AI conversation about a past entry. A past conversation is still
     // shown (read-only) if that entry already has one.
+    var canAsk = hasImage && isCurrentFlightLog;
+    var hasApiKey = !!(context.userSettings || {}).aiApiKey;
+
     aiPanelElem.toggle(hasImage && (isCurrentFlightLog || hasConversation));
-    aiInputElem.toggle(hasImage && isCurrentFlightLog);
+    aiInputElem.toggle(canAsk && hasApiKey);
+    noApiKeyBannerElem.toggle(canAsk && !hasApiKey && !apiKeyBannerDismissed);
     // Once a conversation exists, keep showing the model that actually answered it, even
     // if Settings has since been changed to a different model.
     var usedModel = entry && entry.ai && entry.ai.model;
@@ -636,6 +647,13 @@ function TuningLogDialog(dialog, getContext) {
   });
 
   // ---- Ask AI ----
+
+  dismissApiKeyBannerBtn.click(function (e) {
+    e.preventDefault();
+    apiKeyBannerDismissed = true;
+    prefs.set("tuningLogApiKeyBannerDismissed", true);
+    renderMain();
+  });
 
   askAiBtn.click(function (e) {
     e.preventDefault();
