@@ -69,8 +69,9 @@ var TuningLog = TuningLog || {};
      * Flight controllers without an RTC report the header as "0000-01-01T00:00:00.000+00:00"
      * instead of omitting it, which parses as a valid (but useless) Date - that would otherwise
      * make every such log collide on the same id. When the header is missing or is that sentinel,
-     * fall back to the log file's on-disk creation time (filePath), and finally to the current
-     * time if that isn't available either.
+     * fall back to the log file's last-modified time (filePath) - not creation time, since that
+     * gets reset to "now" when a log is copied off an SD card, while last-modified survives the
+     * copy - and finally to the current time if that isn't available either.
      */
     TuningLog.logTimestamp = function(sysConfig, filePath) {
         var raw = sysConfig && sysConfig['Log start datetime'];
@@ -84,9 +85,9 @@ var TuningLog = TuningLog || {};
 
         if (filePath) {
             try {
-                var birthtime = require('fs').statSync(filePath).birthtime;
-                if (birthtime && !isNaN(birthtime.getTime())) {
-                    return birthtime.toISOString();
+                var mtime = require('fs').statSync(filePath).mtime;
+                if (mtime && !isNaN(mtime.getTime())) {
+                    return mtime.toISOString();
                 }
             } catch (e) {
                 // Path not accessible - fall through to current time
