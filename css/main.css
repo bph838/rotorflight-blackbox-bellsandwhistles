@@ -2002,6 +2002,10 @@ dialog h3 {
     max-width: 50%;
 }
 
+.ai-analysis-dialog .ai-analysis-preview.expanded {
+    max-width: 100%;
+}
+
 .ai-analysis-dialog .ai-analysis-result {
     word-wrap: break-word;
     flex: 1 1 auto;

@@ -21,6 +21,7 @@ function TuningLogDialog(dialog, getContext) {
     selectedIndex = -1, // -1 = the "current flight log" placeholder; otherwise an index into currentLog.entries
     creatingNew = false,
     configVisible = false,
+    imageExpanded = false,
     apiKeyBannerDismissed = false,
     pendingEntryIds = {}; // entry.id -> true while an Ask AI request for that entry is in flight,
     // so the "Thinking…" state survives switching to another entry and back.
@@ -53,6 +54,7 @@ function TuningLogDialog(dialog, getContext) {
   // Main panel
   var titleElem = $(".tuning-log-entry-title", dialog);
   var toggleConfigBtn = $(".tuning-log-toggle-config", dialog);
+  var expandImageBtn = $(".tuning-log-expand-image", dialog);
   var copyImageBtn = $(".tuning-log-copy-image", dialog);
   var copyPromptBtn = $(".tuning-log-copy-prompt", dialog);
   var noImageElem = $(".tuning-log-no-image", dialog);
@@ -353,6 +355,9 @@ function TuningLogDialog(dialog, getContext) {
     toggleConfigBtn
       .toggle(hasConfig)
       .text(configVisible ? "Hide config" : "Expand config");
+    expandImageBtn
+      .toggle(hasImage)
+      .text(imageExpanded ? "Shrink image" : "Expand image");
     copyImageBtn.toggle(hasImage);
     copyPromptBtn.toggle(hasImage && isCurrentFlightLog);
 
@@ -364,7 +369,10 @@ function TuningLogDialog(dialog, getContext) {
           : "No flight log is currently open.",
       );
     }
-    imageElem.toggle(hasImage).attr("src", (entry && entry.image) || "");
+    imageElem
+      .toggle(hasImage)
+      .toggleClass("expanded", imageExpanded)
+      .attr("src", (entry && entry.image) || "");
 
     configElem
       .toggle(hasConfig && configVisible)
@@ -647,6 +655,12 @@ function TuningLogDialog(dialog, getContext) {
   toggleConfigBtn.click(function (e) {
     e.preventDefault();
     configVisible = !configVisible;
+    renderMain();
+  });
+
+  expandImageBtn.click(function (e) {
+    e.preventDefault();
+    imageExpanded = !imageExpanded;
     renderMain();
   });
 
