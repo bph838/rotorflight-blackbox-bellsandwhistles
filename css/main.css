@@ -1919,6 +1919,16 @@ dialog h3 {
     border-color: #999;
 }
 
+.ai-analysis-dialog .ai-session-entry.readonly {
+    background-color: #f2f6fc;
+    border-color: #d8e3f2;
+}
+
+.ai-analysis-dialog .ai-session-entry.current {
+    background-color: #f1f8f1;
+    border-color: #d3e8d3;
+}
+
 .ai-analysis-dialog .ai-session-entry.active {
     border-color: #337ab7;
     background-color: #eaf3fb;

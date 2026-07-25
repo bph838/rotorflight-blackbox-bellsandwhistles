@@ -265,7 +265,7 @@ function TuningLogDialog(dialog, getContext) {
     var context = getContext() || {};
 
     if (pinnedSlotVisible()) {
-      var currentLi = $('<li class="ai-session-entry"></li>')
+      var currentLi = $('<li class="ai-session-entry current"></li>')
         .toggleClass("active", selectedIndex === -1)
         .append(
           $('<span class="ai-session-entry-label"></span>').text(
@@ -302,6 +302,8 @@ function TuningLogDialog(dialog, getContext) {
 
     var li = $('<li class="ai-session-entry"></li>')
       .toggleClass("active", selectedIndex === index)
+      .toggleClass("current", isCurrent)
+      .toggleClass("readonly", !isCurrent)
       .append(
         $('<span class="ai-session-entry-label"></span>').text(
           isCurrent ? "Current" : formatTimestamp(entry.timestamp),
