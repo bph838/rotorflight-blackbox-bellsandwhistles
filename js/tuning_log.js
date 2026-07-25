@@ -62,6 +62,18 @@ var TuningLog = TuningLog || {};
     };
 
     /**
+     * TuningLogDialog displays timestamps by reading their UTC components verbatim (so a flight
+     * log's own recorded "Log start datetime" - already the intended display value - isn't shifted
+     * by the viewer's local timezone; see formatTimestamp in tuning_log_dialog.js). Real Date
+     * objects like a file's mtime carry a true instant rather than a verbatim wall-clock value, so
+     * before handing one to that display code we re-label it: shift it so its UTC components read
+     * as the *local* wall-clock digits, matching what e.g. Windows Explorer shows for the file.
+     */
+    function asUtcLabeledLocalTime(date) {
+        return new Date(date.getTime() - date.getTimezoneOffset() * 60000);
+    }
+
+    /**
      * The flight log's own recorded start time (rather than whenever the user happened to click
      * Capture) so the same flight log always produces the same timestamp/id, wherever it's
      * captured from - that keeps ids checkable/deduplicable against a given log.
@@ -87,14 +99,14 @@ var TuningLog = TuningLog || {};
             try {
                 var mtime = require('fs').statSync(filePath).mtime;
                 if (mtime && !isNaN(mtime.getTime())) {
-                    return mtime.toISOString();
+                    return asUtcLabeledLocalTime(mtime).toISOString();
                 }
             } catch (e) {
                 // Path not accessible - fall through to current time
             }
         }
 
-        return new Date().toISOString();
+        return asUtcLabeledLocalTime(new Date()).toISOString();
     };
 
     /**

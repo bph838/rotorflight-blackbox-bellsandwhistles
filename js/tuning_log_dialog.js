@@ -94,18 +94,25 @@ function TuningLogDialog(dialog, getContext) {
     return (n < 10 ? "0" : "") + n;
   }
 
+  // Compares using UTC getters - see formatTimestamp for why.
   function isSameDay(a, b) {
     return (
-      a.getFullYear() === b.getFullYear() &&
-      a.getMonth() === b.getMonth() &&
-      a.getDate() === b.getDate()
+      a.getUTCFullYear() === b.getUTCFullYear() &&
+      a.getUTCMonth() === b.getUTCMonth() &&
+      a.getUTCDate() === b.getUTCDate()
     );
   }
 
+  /**
+   * Entry timestamps are the flight log's own recorded start time (see TuningLog.logTimestamp),
+   * always stamped in UTC. We want the digits shown here to match the "Log start datetime" the
+   * user sees elsewhere (e.g. the header dialog) verbatim, rather than shifting them to the
+   * viewer's local timezone - so this reads UTC components throughout instead of local ones.
+   */
   function formatTimestamp(iso) {
     try {
       var d = new Date(iso);
-      var time = pad2(d.getHours()) + ":" + pad2(d.getMinutes());
+      var time = pad2(d.getUTCHours()) + ":" + pad2(d.getUTCMinutes());
 
       var now = new Date();
       if (isSameDay(d, now)) {
@@ -113,17 +120,17 @@ function TuningLogDialog(dialog, getContext) {
       }
 
       var yesterday = new Date(now);
-      yesterday.setDate(yesterday.getDate() - 1);
+      yesterday.setUTCDate(yesterday.getUTCDate() - 1);
       if (isSameDay(d, yesterday)) {
         return "Yesterday " + time;
       }
 
       return (
-        pad2(d.getDate()) +
+        pad2(d.getUTCDate()) +
         " " +
-        MONTH_NAMES[d.getMonth()] +
+        MONTH_NAMES[d.getUTCMonth()] +
         " " +
-        d.getFullYear() +
+        d.getUTCFullYear() +
         " " +
         time
       );
