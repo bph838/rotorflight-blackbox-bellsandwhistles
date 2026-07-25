@@ -57,7 +57,7 @@ function BlackboxLogViewer() {
         graphState = GRAPH_STATE_PAUSED,
         currentBlackboxTime = 0,
         lastRenderTime = false,
-        flightLog, flightLogDataArray,
+        flightLog, flightLogDataArray, flightLogFile,
         graph = null,
         latestVersion,
 
@@ -741,6 +741,7 @@ function BlackboxLogViewer() {
 
             try {
                 flightLog = new FlightLog(flightLogDataArray);
+                flightLogFile = file;
             } catch (err) {
                 alert("Sorry, an error occured while trying to open this log:\n\n" + err);
                 return;
@@ -1477,7 +1478,7 @@ function BlackboxLogViewer() {
                 }),
 
                 tuningLogDialog = new TuningLogDialog($("#dlgTuningLog"), function() {
-                    return { flightLog: flightLog, graph: graph, userSettings: userSettings };
+                    return { flightLog: flightLog, graph: graph, userSettings: userSettings, filePath: flightLogFile && flightLogFile.path };
                 }),
 
                 craftConfigDialog = new CraftConfigDialog($("#dlgCraftConfig"), craftConfig, function() {

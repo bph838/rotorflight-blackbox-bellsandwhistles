@@ -56,7 +56,16 @@
       "Bash(node --check js/user_settings_dialog.js)",
       "Bash(node -e \"console.log\\(JSON.stringify\\(require\\('./js/ai_models.json'\\), null, 2\\)\\)\")",
       "Bash(node --check gulpfile.js)",
-      "Bash(node -e \"console.log\\(require\\('./js/ai_models.json'\\).defaultModel\\)\")"
+      "Bash(node -e \"console.log\\(require\\('./js/ai_models.json'\\).defaultModel\\)\")",
+      "PowerShell(Get-Process | Where-Object { $_.ProcessName -match 'rotorflight|nw' } | Select-Object Id, ProcessName, MainWindowTitle | Format-Table -AutoSize)",
+      "Bash(disown)",
+      "Bash(curl -s http://localhost:9222/json/version)",
+      "PowerShell(Get-Process | Where-Object { $_.ProcessName -match 'rotorflight' } | Stop-Process -Force -ErrorAction SilentlyContinue; Start-Sleep -Milliseconds 500; Get-Process | Where-Object { $_.ProcessName -match 'rotorflight' } | Select-Object Id,ProcessName)",
+      "PowerShell(Get-Process | Where-Object { $_.ProcessName -match 'node|gulp|rotorflight' } | Select-Object Id, ProcessName, StartTime | Format-Table -AutoSize)",
+      "PowerShell(Get-Process | Where-Object { $_.ProcessName -match 'rotorflight' } | Stop-Process -Force -ErrorAction SilentlyContinue; Start-Sleep -Milliseconds 500; \"stopped\")",
+      "PowerShell(Get-Process | Where-Object { $_.ProcessName -match 'rotorflight' } | Select-Object Id, ProcessName, StartTime | Format-Table -AutoSize; Write-Output \"---\"; Get-WinEvent -FilterHashtable @{LogName='Application'; StartTime=\\(Get-Date\\).AddMinutes\\(-5\\)} -ErrorAction SilentlyContinue | Where-Object { $_.Message -match 'rotorflight' } | Select-Object -First 5 TimeCreated, Id, LevelDisplayName, Message | Format-List)",
+      "Bash(echo \"EXIT CODE: $?\")",
+      "PowerShell(Get-Process | Where-Object { $_.ProcessName -match 'rotorflight' } | Select-Object Id, ProcessName, StartTime | Format-Table -AutoSize)"
     ]
   }
 }

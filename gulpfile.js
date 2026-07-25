@@ -156,22 +156,26 @@ function getRunDebugAppCommand(arch) {
 
     let command;
 
+    // Opens the Chrome DevTools Protocol port so an editor debugger
+    // (see .vscode/launch.json) can attach and set breakpoints.
+    const remoteDebuggingArg = '--remote-debugging-port=9222';
+
     switch (arch) {
     case 'osx64':
         const pkgName = `${pkg.name}.app`;
-        command = `open ${path.join(DEBUG_DIR, pkg.name, arch, pkgName)}`;
+        command = `open ${path.join(DEBUG_DIR, pkg.name, arch, pkgName)} --args ${remoteDebuggingArg}`;
 
         break;
 
     case 'linux64':
     case 'linux32':
-        command = path.join(DEBUG_DIR, pkg.name, arch, pkg.name);
+        command = path.join(DEBUG_DIR, pkg.name, arch, pkg.name) + ' ' + remoteDebuggingArg;
 
         break;
 
     case 'win32':
     case 'win64':
-        command = path.join(DEBUG_DIR, pkg.name, arch, pkg.name + '.exe');
+        command = path.join(DEBUG_DIR, pkg.name, arch, pkg.name + '.exe') + ' ' + remoteDebuggingArg;
 
         break;
 

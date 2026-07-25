@@ -64,16 +64,32 @@ var TuningLog = TuningLog || {};
     /**
      * The flight log's own recorded start time (rather than whenever the user happened to click
      * Capture) so the same flight log always produces the same timestamp/id, wherever it's
-     * captured from - that keeps ids checkable/deduplicable against a given log. Falls back to
-     * the current time for logs that don't carry this header.
+     * captured from - that keeps ids checkable/deduplicable against a given log.
+     *
+     * Flight controllers without an RTC report the header as "0000-01-01T00:00:00.000+00:00"
+     * instead of omitting it, which parses as a valid (but useless) Date - that would otherwise
+     * make every such log collide on the same id. When the header is missing or is that sentinel,
+     * fall back to the log file's on-disk creation time (filePath), and finally to the current
+     * time if that isn't available either.
      */
-    TuningLog.logTimestamp = function(sysConfig) {
+    TuningLog.logTimestamp = function(sysConfig, filePath) {
         var raw = sysConfig && sysConfig['Log start datetime'];
 
         if (raw) {
             var parsed = new Date(raw);
-            if (!isNaN(parsed.getTime())) {
+            if (!isNaN(parsed.getTime()) && parsed.getUTCFullYear() >= 2000) {
                 return parsed.toISOString();
+            }
+        }
+
+        if (filePath) {
+            try {
+                var birthtime = require('fs').statSync(filePath).birthtime;
+                if (birthtime && !isNaN(birthtime.getTime())) {
+                    return birthtime.toISOString();
+                }
+            } catch (e) {
+                // Path not accessible - fall through to current time
             }
         }
 

@@ -180,7 +180,7 @@ function TuningLogDialog(dialog, getContext) {
     if (!context.flightLog || !currentLog) return -1;
 
     var id = TuningLog.makeId(
-      TuningLog.logTimestamp(context.flightLog.getSysConfig()),
+      TuningLog.logTimestamp(context.flightLog.getSysConfig(), context.filePath),
     );
 
     for (var i = 0; i < currentLog.entries.length; i++) {
@@ -450,7 +450,7 @@ function TuningLogDialog(dialog, getContext) {
       config: TuningLog.buildConfigSummary(sysConfig),
       notes: "",
       craftName: sysConfig["Craft name"] || "",
-      timestamp: TuningLog.logTimestamp(sysConfig),
+      timestamp: TuningLog.logTimestamp(sysConfig, context.filePath),
     };
   }
 
