@@ -161,6 +161,10 @@ function TuningLogDialog(dialog, getContext) {
     return (entry.ai && entry.ai.costUsd) || 0;
   }
 
+  function entryHasAnalysis(entry) {
+    return !!(entry.ai && entry.ai.conversation && entry.ai.conversation.length);
+  }
+
   function excerpt(text, maxLen) {
     text = (text || "").trim();
     if (!text) return "";
@@ -288,14 +292,25 @@ function TuningLogDialog(dialog, getContext) {
 
     var currentEntryIndex = currentFlightLogEntryIndex();
     var entries = currentLog.entries;
+    // The current entry isn't necessarily the newest one in the log - entries are ordered by
+    // when they were captured, not by flight log timestamp, so an older flight log opened later
+    // ends up above it in the list.
+    var currentIsBehindLatest =
+      currentEntryIndex !== -1 && currentEntryIndex !== entries.length - 1;
+
     for (var i = entries.length - 1; i >= 0; i--) {
       listElem.append(
-        buildEntryListItem(entries[i], i, i === currentEntryIndex),
+        buildEntryListItem(
+          entries[i],
+          i,
+          i === currentEntryIndex,
+          i === currentEntryIndex && currentIsBehindLatest,
+        ),
       );
     }
   }
 
-  function buildEntryListItem(entry, index, isCurrent) {
+  function buildEntryListItem(entry, index, isCurrent, isBehindLatest) {
     var subtitle = isCurrent ? formatTimestamp(entry.timestamp) : "Read-only";
     var cost = entryCost(entry);
     if (cost) subtitle += "  ·  " + formatCost(cost);
@@ -304,6 +319,12 @@ function TuningLogDialog(dialog, getContext) {
       .toggleClass("active", selectedIndex === index)
       .toggleClass("current", isCurrent)
       .toggleClass("readonly", !isCurrent)
+      .toggleClass("analyzed", entryHasAnalysis(entry))
+      .toggleClass("behind-latest", isBehindLatest)
+      .attr(
+        "title",
+        isBehindLatest ? "The current log is not the latest entry in this tuning log" : null,
+      )
       .append(
         $('<span class="ai-session-entry-label"></span>').text(
           isCurrent ? "Current" : formatTimestamp(entry.timestamp),
@@ -489,6 +510,23 @@ function TuningLogDialog(dialog, getContext) {
     return true;
   }
 
+  /**
+   * Makes sure the entry list selection points at whatever flight log is currently open in the
+   * main viewer - capturing it first if this is the first time we've seen it. Jumps the
+   * selection there whether or not a capture just happened, so a flight log that was already
+   * captured earlier (and so isn't the newest entry) still gets shown instead of the dialog
+   * falling back to the empty "current flight log" placeholder and claiming no step response
+   * is available.
+   */
+  function syncSelectionToCurrentFlightLog() {
+    ensureCurrentFlightLogCaptured();
+
+    var index = currentFlightLogEntryIndex();
+    if (index !== -1) {
+      selectedIndex = index;
+    }
+  }
+
   // ---- New / Open ----
 
   newBtn.click(function (e) {
@@ -582,9 +620,7 @@ function TuningLogDialog(dialog, getContext) {
         creatingNew = false;
         selectedIndex = -1;
 
-        if (ensureCurrentFlightLogCaptured()) {
-          selectedIndex = currentFlightLogEntryIndex();
-        }
+        syncSelectionToCurrentFlightLog();
 
         prefs.set("tuningLogLastPath", path);
         render();
@@ -792,10 +828,8 @@ function TuningLogDialog(dialog, getContext) {
       });
     } else {
       // The dialog may have been closed and reopened after a different flight log was
-      // loaded in the main viewer - make sure it's captured before rendering.
-      if (ensureCurrentFlightLogCaptured()) {
-        selectedIndex = currentFlightLogEntryIndex();
-      }
+      // loaded in the main viewer - make sure it's captured and selected before rendering.
+      syncSelectionToCurrentFlightLog();
       render();
     }
 

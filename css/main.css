@@ -1929,6 +1929,20 @@ dialog h3 {
     border-color: #d3e8d3;
 }
 
+/* Entries that already have an AI analysis conversation attached - overrides the plain
+   readonly/current tints above, but the selected entry's .active style (below) still wins. */
+.ai-analysis-dialog .ai-session-entry.analyzed {
+    background-color: #f2ecfa;
+    border-color: #ddc6ef;
+}
+
+/* The current entry, when it isn't the newest one in the log - takes priority over .analyzed
+   above since it's a warning rather than just informational. */
+.ai-analysis-dialog .ai-session-entry.behind-latest {
+    background-color: #fdecea;
+    border-color: #f1c3bd;
+}
+
 .ai-analysis-dialog .ai-session-entry.active {
     border-color: #337ab7;
     background-color: #eaf3fb;
