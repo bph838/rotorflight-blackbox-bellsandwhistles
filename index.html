@@ -3501,6 +3501,17 @@
                                             <!-- options populated from js/ai_models.json by js/user_settings_dialog.js -->
                                         </select>
                                     </div>
+                                    <div>
+                                        <label>Effort</label>
+                                        <select class="form-control ai-effort-select" style="width: auto; max-width: 100%;">
+                                            <option value="low">Low (fastest, cheapest)</option>
+                                            <option value="medium">Medium</option>
+                                            <option value="high">High (default)</option>
+                                            <option value="xhigh">X-High</option>
+                                            <option value="max">Max (most thorough, slowest)</option>
+                                        </select>
+                                        <p>How much the model reasons before answering. Higher effort can give more thorough tuning advice, at the cost of a slower, more expensive response. Ignored on models that don't support it.</p>
+                                    </div>
                                 </div>
                             </div>
                             <div class="gui_box grey top-spacer watermark-settings">

@@ -71,6 +71,7 @@ function UserSettingsDialog(dialog, onLoad, onSave) {
                 overdrawSpectrumType: 0,                // By default, show all filters
                 aiApiKey                        : '',                        // Anthropic API key used by the AI Analyse feature
                 aiModel                        : aiModels.defaultModel,        // Anthropic model used by the AI Analyse feature
+                aiEffort                        : 'high',                        // Anthropic effort level used by the AI Analyse feature
                 aiAnalysisInstructions        : '',                        // Last-used instructions for the AI Analyse feature
                 craft                                : {
                                                                         left  : '15%',        // position from left (as a percentage of width)
@@ -322,6 +323,10 @@ function UserSettingsDialog(dialog, onLoad, onSave) {
                 currentSettings.aiModel = $(this).val();
         });
 
+        $(".ai-effort-select").on("change", function() {
+                currentSettings.aiEffort = $(this).val();
+        });
+
     $(".legend-units").click(function() {
         currentSettings.legendUnits = $(this).is(":checked");
     });
@@ -398,6 +403,7 @@ function UserSettingsDialog(dialog, onLoad, onSave) {
 
                         $(".ai-api-key-input").val(currentSettings.aiApiKey || '');
                         $(".ai-model-select").val(currentSettings.aiModel || aiModels.defaultModel);
+                        $(".ai-effort-select").val(currentSettings.aiEffort || 'high');
 
                         if(currentSettings.legendUnits!=null) {
                                 // set the toggle switch

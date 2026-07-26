@@ -183,6 +183,12 @@ var TuningAI = TuningAI || {};
             requestParams.thinking = { type: 'adaptive' };
         }
 
+        // Effort isn't supported on every model (e.g. Haiku 4.5, which errors if it's sent) - only
+        // request it where it's valid
+        if (options.effort && (!modelInfo || modelInfo.supportsEffort)) {
+            requestParams.output_config = { effort: options.effort };
+        }
+
         var stream;
         try {
             stream = client.beta.messages.stream(requestParams);
@@ -228,8 +234,10 @@ var TuningAI = TuningAI || {};
      * Starts a new tuning-advice conversation about a single entry (its image + config summary),
      * with the rest of the tuning log's history prepended as context.
      *
-     * options: { apiKey, model, historyMessages, entry: {image, config}, instructions, expertMode,
-     * onChunk }
+     * options: { apiKey, model, effort, historyMessages, entry: {image, config}, instructions,
+     * expertMode, onChunk }
+     * effort, if given, is passed through as output_config.effort ('low'/'medium'/'high'/'xhigh'/
+     * 'max') on models that support it - ignored otherwise.
      * onChunk(textSnapshot), if given, is called repeatedly as the response streams in, with the
      * full response text accumulated so far - use it to render progressively instead of waiting
      * for the whole answer.
@@ -266,8 +274,9 @@ var TuningAI = TuningAI || {};
     /**
      * Continues an existing entry's conversation with a follow-up question.
      *
-     * options: { apiKey, model, historyMessages, messages, question, onChunk }
+     * options: { apiKey, model, effort, historyMessages, messages, question, onChunk }
      * `messages` is this entry's own conversation so far (as returned by a previous analyze()/ask() call).
+     * effort, if given, is passed through as output_config.effort on models that support it.
      * onChunk(textSnapshot), if given, is called repeatedly as the response streams in, with the
      * full response text accumulated so far.
      * onResult(resultText, entryMessages, costUsd) - pass the updated entryMessages back in for
