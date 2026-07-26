@@ -84,6 +84,12 @@
 	padding-top: 0px;
 }
 
+/* "Anthropic API Key" is too long to fit the 75px label width above without wrapping */
+.user-settings-dialog .ai-analysis-settings label {
+	width: auto;
+	white-space: nowrap;
+}
+
 .user-settings-dialog table {
 	margin-top: 10px;
 }
