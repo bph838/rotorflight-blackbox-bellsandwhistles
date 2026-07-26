@@ -51,6 +51,21 @@
     margin-bottom: 0;
 }
 
+/* Provisional turn showing the response as it streams in, before it's finished/saved */
+.ai-analysis-dialog .ai-analysis-result-streaming > *:last-child::after {
+    content: "\258C";
+    display: inline-block;
+    margin-left: 0.15em;
+    color: var(--ai-response-accent);
+    animation: ai-response-cursor-blink 1s step-start infinite;
+}
+
+@keyframes ai-response-cursor-blink {
+    50% {
+        opacity: 0;
+    }
+}
+
 /* Headings act as section dividers within a long tuning writeup */
 .ai-analysis-dialog .ai-analysis-result h1,
 .ai-analysis-dialog .ai-analysis-result h2 {

@@ -69,7 +69,8 @@
       "Skill(claude-api)",
       "Skill(claude-api:*)",
       "Bash(node -e \"console.log\\(require\\('@anthropic-ai/sdk/package.json'\\).version\\)\")",
-      "Bash(npm view *)"
+      "Bash(npm view *)",
+      "Bash(node -e \"console.log\\(require\\('./node_modules/@anthropic-ai/sdk/package.json'\\).version\\)\")"
     ]
   }
 }

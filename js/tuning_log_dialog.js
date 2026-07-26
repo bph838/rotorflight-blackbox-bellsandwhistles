@@ -23,8 +23,9 @@ function TuningLogDialog(dialog, getContext) {
     configVisible = false,
     imageExpanded = false,
     apiKeyBannerDismissed = false,
-    pendingEntryIds = {}; // entry.id -> true while an Ask AI request for that entry is in flight,
+    pendingEntryIds = {}, // entry.id -> true while an Ask AI request for that entry is in flight,
     // so the "Thinking…" state survives switching to another entry and back.
+    streamingTextByEntryId = {}; // entry.id -> response text received so far, while streaming in
 
   prefs.get("tuningLogApiKeyBannerDismissed", function (dismissed) {
     apiKeyBannerDismissed = !!dismissed;
@@ -486,6 +487,17 @@ function TuningLogDialog(dialog, getContext) {
         );
       }
     }
+
+    // Response text streams in as the model generates it - show whatever's arrived so far as a
+    // provisional turn, rather than leaving the conversation empty until the whole answer lands.
+    var streamingText = entry && streamingTextByEntryId[entry.id];
+    if (streamingText) {
+      conversationElem.append(
+        $(
+          '<div class="ai-analysis-turn ai-analysis-result ai-analysis-result-streaming"></div>',
+        ).html(marked.parse(streamingText)),
+      );
+    }
   }
 
   /**
@@ -789,10 +801,20 @@ function TuningLogDialog(dialog, getContext) {
       model: settings.aiModel,
       historyMessages: historyMessages,
       expertMode: expertModeCheckbox.is(":checked"),
+      onChunk: function (textSnapshot) {
+        streamingTextByEntryId[entry.id] = textSnapshot;
+
+        // Only the conversation panel needs to update as text streams in - avoid a full
+        // render() (and its sidebar/cost-badge work) on every chunk.
+        if (currentEntry() === entry) {
+          renderConversation(entry);
+        }
+      },
     };
 
     function onResult(text, entryMessages, costUsd) {
       delete pendingEntryIds[entry.id];
+      delete streamingTextByEntryId[entry.id];
 
       entry.ai = entry.ai || {};
       entry.ai.model = settings.aiModel;
@@ -814,6 +836,7 @@ function TuningLogDialog(dialog, getContext) {
 
     function onError(message) {
       delete pendingEntryIds[entry.id];
+      delete streamingTextByEntryId[entry.id];
       render();
 
       // Only worth surfacing the error inline if we're still looking at the entry it belongs

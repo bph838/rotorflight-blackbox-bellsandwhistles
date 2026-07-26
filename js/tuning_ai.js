@@ -152,6 +152,11 @@ var TuningAI = TuningAI || {};
         return messages;
     };
 
+    /**
+     * options may include an `onChunk(textSnapshot)` callback - if given, it's called every time
+     * more response text arrives, with the full text accumulated so far (not just the latest
+     * delta), so callers can render progressively instead of waiting for the whole response.
+     */
     function sendMessages(options, messages, onResult, onError) {
         var client;
         try {
@@ -166,9 +171,8 @@ var TuningAI = TuningAI || {};
             model: model,
             // Adaptive thinking counts against this same budget, and models like Opus can spend
             // most or all of a small budget on thinking before writing any answer - leaving too
-            // little here is what previously caused empty/cut-off responses. 16000 is the
-            // recommended default for a non-streaming request (comfortably under the ~10 minute
-            // client timeout).
+            // little here is what previously caused empty/cut-off responses. Streaming (below)
+            // means we're not racing a client-side HTTP timeout to get the full response back.
             max_tokens: 16000,
             messages: messages,
         };
@@ -179,7 +183,21 @@ var TuningAI = TuningAI || {};
             requestParams.thinking = { type: 'adaptive' };
         }
 
-        client.beta.messages.create(requestParams).then(function(response) {
+        var stream;
+        try {
+            stream = client.beta.messages.stream(requestParams);
+        } catch (e) {
+            onError((e && e.message) ? e.message : String(e));
+            return;
+        }
+
+        if (typeof options.onChunk === 'function') {
+            stream.on('text', function(textDelta, textSnapshot) {
+                options.onChunk(textSnapshot);
+            });
+        }
+
+        stream.on('finalMessage', function(response) {
             var text = '';
             for (var i = 0; i < response.content.length; i++) {
                 if (response.content[i].type === 'text') {
@@ -199,7 +217,9 @@ var TuningAI = TuningAI || {};
             var updatedMessages = messages.concat([{ role: 'assistant', content: text }]);
             var costUsd = TuningAI.estimateCostUsd(model, response.usage);
             onResult(text, updatedMessages, costUsd);
-        }).catch(function(error) {
+        });
+
+        stream.on('error', function(error) {
             onError((error && error.message) ? error.message : String(error));
         });
     }
@@ -208,7 +228,11 @@ var TuningAI = TuningAI || {};
      * Starts a new tuning-advice conversation about a single entry (its image + config summary),
      * with the rest of the tuning log's history prepended as context.
      *
-     * options: { apiKey, model, historyMessages, entry: {image, config}, instructions, expertMode }
+     * options: { apiKey, model, historyMessages, entry: {image, config}, instructions, expertMode,
+     * onChunk }
+     * onChunk(textSnapshot), if given, is called repeatedly as the response streams in, with the
+     * full response text accumulated so far - use it to render progressively instead of waiting
+     * for the whole answer.
      * onResult(resultText, entryMessages, costUsd) - entryMessages is *this entry's own*
      * conversation (not including historyMessages/repeats of it) - keep it and pass it back into
      * TuningAI.ask() for follow-ups, and persist it as entry.ai.conversation. costUsd is this
@@ -242,8 +266,10 @@ var TuningAI = TuningAI || {};
     /**
      * Continues an existing entry's conversation with a follow-up question.
      *
-     * options: { apiKey, model, historyMessages, messages, question }
+     * options: { apiKey, model, historyMessages, messages, question, onChunk }
      * `messages` is this entry's own conversation so far (as returned by a previous analyze()/ask() call).
+     * onChunk(textSnapshot), if given, is called repeatedly as the response streams in, with the
+     * full response text accumulated so far.
      * onResult(resultText, entryMessages, costUsd) - pass the updated entryMessages back in for
      * the next follow-up; costUsd is this call's estimated price.
      */
