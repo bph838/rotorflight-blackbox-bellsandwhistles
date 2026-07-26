@@ -65,7 +65,7 @@ function TuningLogDialog(dialog, getContext) {
 
   // Ask AI panel
   var aiPanelElem = $(".tuning-log-ai-panel", dialog);
-  var aiModelElem = $(".tuning-log-ai-model", dialog);
+  var aiModelSelect = $(".tuning-log-ai-model-select", dialog);
   var conversationElem = $(".tuning-log-ai-conversation", dialog);
   var noApiKeyBannerElem = $(".tuning-log-no-api-key-banner", dialog);
   var dismissApiKeyBannerBtn = $(".tuning-log-no-api-key-dismiss", dialog);
@@ -147,15 +147,21 @@ function TuningLogDialog(dialog, getContext) {
   }
 
   // js/ai_models.json is the single source of truth for model ids/names/pricing.
-  var MODELS_BY_ID = {};
   AI_MODELS.models.forEach(function (m) {
-    MODELS_BY_ID[m.id] = m;
+    aiModelSelect.append($("<option></option>").attr("value", m.id).text(m.displayName));
   });
 
-  function modelDisplayName(id) {
-    var model = id && MODELS_BY_ID[id];
-    return (model && model.displayName) || id || "no model configured";
-  }
+  aiModelSelect.on("change", function () {
+    var context = getContext() || {};
+    if (!context.userSettings) return;
+
+    // context.userSettings is the same live object main.js holds onto, so mutating it here
+    // takes effect immediately for the rest of the app too - persist it under the same
+    // "userSettings" key the Settings dialog itself saves to, so it survives a restart and
+    // shows up there next time it's opened.
+    context.userSettings.aiModel = aiModelSelect.val();
+    prefs.set("userSettings", context.userSettings);
+  });
 
   function entryCost(entry) {
     return (entry.ai && entry.ai.costUsd) || 0;
@@ -441,14 +447,7 @@ function TuningLogDialog(dialog, getContext) {
     // it once a conversation is already underway.
     expertModeLabelElem.toggle(canAsk && hasApiKey && !hasConversation);
     noApiKeyBannerElem.toggle(canAsk && !hasApiKey && !apiKeyBannerDismissed);
-    // Once a conversation exists, keep showing the model that actually answered it, even
-    // if Settings has since been changed to a different model.
-    var usedModel = entry && entry.ai && entry.ai.model;
-    var settingsModel = (context.userSettings || {}).aiModel;
-    aiModelElem.text(
-      (hasConversation ? "Model: " : "Will use: ") +
-        modelDisplayName(usedModel || settingsModel),
-    );
+    aiModelSelect.val((context.userSettings || {}).aiModel || TuningAI.DEFAULT_MODEL);
     aiPromptInput.attr(
       "placeholder",
       hasConversation
@@ -459,6 +458,7 @@ function TuningLogDialog(dialog, getContext) {
     aiErrorElem.hide();
     aiLoadingElem.toggle(isPending);
     askAiBtn.prop("disabled", isPending);
+    aiModelSelect.prop("disabled", isPending);
 
     renderConversation(entry);
   }
