@@ -1936,16 +1936,17 @@ dialog h3 {
     border-color: #ddc6ef;
 }
 
-/* The current entry, when it isn't the newest one in the log - takes priority over .analyzed
-   above since it's a warning rather than just informational. */
-.ai-analysis-dialog .ai-session-entry.behind-latest {
-    background-color: #fdecea;
-    border-color: #f1c3bd;
-}
-
 .ai-analysis-dialog .ai-session-entry.active {
     border-color: #337ab7;
     background-color: #eaf3fb;
+}
+
+/* The current entry, when it isn't the newest one in the log - this is a warning, so it stays
+   red even when the entry is also selected/active (unlike .analyzed above, which is only
+   informational and can be hidden by the blue "selected" highlight). */
+.ai-analysis-dialog .ai-session-entry.behind-latest {
+    background-color: #fdecea;
+    border-color: #f1c3bd;
 }
 
 .ai-analysis-dialog .ai-session-entry-label {

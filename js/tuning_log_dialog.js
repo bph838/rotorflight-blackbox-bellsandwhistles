@@ -165,6 +165,24 @@ function TuningLogDialog(dialog, getContext) {
     return !!(entry.ai && entry.ai.conversation && entry.ai.conversation.length);
   }
 
+  /**
+   * Tooltip explaining an entry's highlight colour, if any - kept in the same priority order as
+   * the CSS (behind-latest red beats analyzed purple beats current green), so the text always
+   * matches whichever colour is actually showing.
+   */
+  function entryTooltip(entry, isCurrent, isBehindLatest) {
+    if (isBehindLatest) {
+      return "The current log is not the latest entry in this tuning log";
+    }
+    if (entryHasAnalysis(entry)) {
+      return "AI tuning advice has already been generated for this entry";
+    }
+    if (isCurrent) {
+      return "This is the flight log currently open in the viewer";
+    }
+    return null;
+  }
+
   function excerpt(text, maxLen) {
     text = (text || "").trim();
     if (!text) return "";
@@ -321,10 +339,7 @@ function TuningLogDialog(dialog, getContext) {
       .toggleClass("readonly", !isCurrent)
       .toggleClass("analyzed", entryHasAnalysis(entry))
       .toggleClass("behind-latest", isBehindLatest)
-      .attr(
-        "title",
-        isBehindLatest ? "The current log is not the latest entry in this tuning log" : null,
-      )
+      .attr("title", entryTooltip(entry, isCurrent, isBehindLatest))
       .append(
         $('<span class="ai-session-entry-label"></span>').text(
           isCurrent ? "Current" : formatTimestamp(entry.timestamp),
