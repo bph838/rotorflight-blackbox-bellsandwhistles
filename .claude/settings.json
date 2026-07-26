@@ -65,7 +65,11 @@
       "PowerShell(Get-Process | Where-Object { $_.ProcessName -match 'rotorflight' } | Stop-Process -Force -ErrorAction SilentlyContinue; Start-Sleep -Milliseconds 500; \"stopped\")",
       "PowerShell(Get-Process | Where-Object { $_.ProcessName -match 'rotorflight' } | Select-Object Id, ProcessName, StartTime | Format-Table -AutoSize; Write-Output \"---\"; Get-WinEvent -FilterHashtable @{LogName='Application'; StartTime=\\(Get-Date\\).AddMinutes\\(-5\\)} -ErrorAction SilentlyContinue | Where-Object { $_.Message -match 'rotorflight' } | Select-Object -First 5 TimeCreated, Id, LevelDisplayName, Message | Format-List)",
       "Bash(echo \"EXIT CODE: $?\")",
-      "PowerShell(Get-Process | Where-Object { $_.ProcessName -match 'rotorflight' } | Select-Object Id, ProcessName, StartTime | Format-Table -AutoSize)"
+      "PowerShell(Get-Process | Where-Object { $_.ProcessName -match 'rotorflight' } | Select-Object Id, ProcessName, StartTime | Format-Table -AutoSize)",
+      "Skill(claude-api)",
+      "Skill(claude-api:*)",
+      "Bash(node -e \"console.log\\(require\\('@anthropic-ai/sdk/package.json'\\).version\\)\")",
+      "Bash(npm view *)"
     ]
   }
 }

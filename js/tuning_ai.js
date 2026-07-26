@@ -164,7 +164,12 @@ var TuningAI = TuningAI || {};
         var model = options.model || TuningAI.DEFAULT_MODEL;
         var requestParams = {
             model: model,
-            max_tokens: 4096,
+            // Adaptive thinking counts against this same budget, and models like Opus can spend
+            // most or all of a small budget on thinking before writing any answer - leaving too
+            // little here is what previously caused empty/cut-off responses. 16000 is the
+            // recommended default for a non-streaming request (comfortably under the ~10 minute
+            // client timeout).
+            max_tokens: 16000,
             messages: messages,
         };
 
@@ -181,6 +186,14 @@ var TuningAI = TuningAI || {};
                     text += response.content[i].text;
                 }
             }
+
+            if (response.stop_reason === 'max_tokens') {
+                text = (text ? text + '\n\n' : '') +
+                    '_(This response was cut off - it ran out of its token budget, often because ' +
+                    'most of it was spent on internal reasoning before any answer was written. Try ' +
+                    'again, or ask a more focused follow-up question.)_';
+            }
+
             text = text || '(No text response received)';
 
             var updatedMessages = messages.concat([{ role: 'assistant', content: text }]);
