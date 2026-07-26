@@ -1941,6 +1941,13 @@ dialog h3 {
     background-color: #eaf3fb;
 }
 
+/* Selecting an already-analyzed entry should still read as purple, just a stronger shade -
+   otherwise .active's blue above hides the fact that it has AI advice attached. */
+.ai-analysis-dialog .ai-session-entry.analyzed.active {
+    background-color: #e2c7f2;
+    border-color: #a45cd1;
+}
+
 /* The current entry, when it isn't the newest one in the log - this is a warning, so it stays
    red even when the entry is also selected/active (unlike .analyzed above, which is only
    informational and can be hidden by the blue "selected" highlight). */
