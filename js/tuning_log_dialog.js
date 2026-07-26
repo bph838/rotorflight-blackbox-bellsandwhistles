@@ -165,22 +165,11 @@ function TuningLogDialog(dialog, getContext) {
     return !!(entry.ai && entry.ai.conversation && entry.ai.conversation.length);
   }
 
-  /**
-   * Tooltip explaining an entry's highlight colour, if any - kept in the same priority order as
-   * the CSS (behind-latest red beats analyzed purple beats current green), so the text always
-   * matches whichever colour is actually showing.
-   */
-  function entryTooltip(entry, isCurrent, isBehindLatest) {
-    if (isBehindLatest) {
-      return "The current log is not the latest entry in this tuning log";
-    }
-    if (entryHasAnalysis(entry)) {
-      return "AI tuning advice has already been generated for this entry";
-    }
-    if (isCurrent) {
-      return "This is the flight log currently open in the viewer";
-    }
-    return null;
+  function badge(icon, cssClass, title) {
+    return $('<span class="glyphicon ai-session-badge"></span>')
+      .addClass("glyphicon-" + icon)
+      .addClass(cssClass)
+      .attr("title", title);
   }
 
   function excerpt(text, maxLen) {
@@ -287,7 +276,7 @@ function TuningLogDialog(dialog, getContext) {
     var context = getContext() || {};
 
     if (pinnedSlotVisible()) {
-      var currentLi = $('<li class="ai-session-entry current"></li>')
+      var currentLi = $('<li class="ai-session-entry"></li>')
         .toggleClass("active", selectedIndex === -1)
         .append(
           $('<span class="ai-session-entry-label"></span>').text(
@@ -333,18 +322,33 @@ function TuningLogDialog(dialog, getContext) {
     var cost = entryCost(entry);
     if (cost) subtitle += "  ·  " + formatCost(cost);
 
+    var labelElem = $('<span class="ai-session-entry-label"></span>').text(
+      isCurrent ? "Current" : formatTimestamp(entry.timestamp),
+    );
+
+    if (isBehindLatest) {
+      labelElem.append(
+        badge(
+          "exclamation-sign",
+          "ai-session-badge-behind-latest",
+          "The current log is not the latest entry in this tuning log",
+        ),
+      );
+    }
+
+    if (entryHasAnalysis(entry)) {
+      labelElem.append(
+        badge(
+          "comment",
+          "ai-session-badge-analyzed",
+          "AI tuning advice has already been generated for this entry",
+        ),
+      );
+    }
+
     var li = $('<li class="ai-session-entry"></li>')
       .toggleClass("active", selectedIndex === index)
-      .toggleClass("current", isCurrent)
-      .toggleClass("readonly", !isCurrent)
-      .toggleClass("analyzed", entryHasAnalysis(entry))
-      .toggleClass("behind-latest", isBehindLatest)
-      .attr("title", entryTooltip(entry, isCurrent, isBehindLatest))
-      .append(
-        $('<span class="ai-session-entry-label"></span>').text(
-          isCurrent ? "Current" : formatTimestamp(entry.timestamp),
-        ),
-      )
+      .append(labelElem)
       .append($("<br>"))
       .append($("<small></small>").text(subtitle));
 

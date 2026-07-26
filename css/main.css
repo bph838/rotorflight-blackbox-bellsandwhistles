@@ -1919,46 +1919,31 @@ dialog h3 {
     border-color: #999;
 }
 
-.ai-analysis-dialog .ai-session-entry.readonly {
-    background-color: #f2f6fc;
-    border-color: #d8e3f2;
-}
-
-.ai-analysis-dialog .ai-session-entry.current {
-    background-color: #f1f8f1;
-    border-color: #d3e8d3;
-}
-
-/* Entries that already have an AI analysis conversation attached - overrides the plain
-   readonly/current tints above, but the selected entry's .active style (below) still wins. */
-.ai-analysis-dialog .ai-session-entry.analyzed {
-    background-color: #f2ecfa;
-    border-color: #ddc6ef;
-}
-
 .ai-analysis-dialog .ai-session-entry.active {
     border-color: #337ab7;
     background-color: #eaf3fb;
 }
 
-/* Selecting an already-analyzed entry should still read as purple, just a stronger shade -
-   otherwise .active's blue above hides the fact that it has AI advice attached. */
-.ai-analysis-dialog .ai-session-entry.analyzed.active {
-    background-color: #e2c7f2;
-    border-color: #a45cd1;
-}
-
-/* The current entry, when it isn't the newest one in the log - this is a warning, so it stays
-   red even when the entry is also selected/active (unlike .analyzed above, which is only
-   informational and can be hidden by the blue "selected" highlight). */
-.ai-analysis-dialog .ai-session-entry.behind-latest {
-    background-color: #fdecea;
-    border-color: #f1c3bd;
-}
-
 .ai-analysis-dialog .ai-session-entry-label {
     font-weight: bold;
     display: block;
+}
+
+/* Small status icons next to an entry's label (has AI analysis / current log isn't the latest
+   entry) instead of tinting the whole row. */
+.ai-analysis-dialog .ai-session-badge {
+    margin-left: 0.4em;
+    font-size: 0.85em;
+    font-weight: normal;
+    cursor: help;
+}
+
+.ai-analysis-dialog .ai-session-badge-analyzed {
+    color: #8e44ad;
+}
+
+.ai-analysis-dialog .ai-session-badge-behind-latest {
+    color: #c0392b;
 }
 
 .ai-analysis-dialog .ai-session-entry-readonly-tag {
