@@ -346,7 +346,7 @@ function TuningLogDialog(dialog, getContext) {
     if (entryHasAnalysis(entry)) {
       labelElem.append(
         badge(
-          "comment",
+          "ok",
           "ai-session-badge-analyzed",
           "AI tuning advice has already been generated for this entry",
         ),
@@ -360,7 +360,8 @@ function TuningLogDialog(dialog, getContext) {
       .append($("<small></small>").text(subtitle));
 
     var deleteBtn = $(
-      '<button type="button" class="ai-session-entry-delete" title="Delete entry">&times;</button>',
+      //'<button type="button" class="ai-session-entry-delete" title="Delete entry">&times;</button>',
+      '<button type="button" class="ai-session-entry-delete" title="Delete entry"><span class="glyphicon glyphicon-trash"></span></button>',
     );
     deleteBtn.on("click", function (e) {
       e.stopPropagation();
