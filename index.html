@@ -3514,6 +3514,14 @@
                                         </select>
                                         <p>How much the model reasons before answering. Higher effort can give more thorough tuning advice, at the cost of a slower, more expensive response. Ignored on models that don't support it.</p>
                                     </div>
+                                    <div>
+                                        <label>Custom Skill ID (optional)</label>
+                                        <input class="ai-skill-id-input" type="text" autocomplete="off"
+                                            placeholder="skill_..." style="width: 100%;" />
+                                        <p>ID of a custom Agent Skill already uploaded to your Anthropic account (Console &rarr; Skills, or the Skills API) -
+                                            not a Claude Code skill. When set, it's loaded into every AI Analysis request via a code-execution container,
+                                            which adds a small amount of extra cost/latency. Leave blank to disable.</p>
+                                    </div>
                                 </div>
                             </div>
                             <div class="gui_box grey top-spacer watermark-settings">

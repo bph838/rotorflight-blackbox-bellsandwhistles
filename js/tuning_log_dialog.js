@@ -801,6 +801,7 @@ function TuningLogDialog(dialog, getContext) {
       apiKey: settings.aiApiKey,
       model: settings.aiModel,
       effort: settings.aiEffort,
+      skillId: settings.aiSkillId,
       historyMessages: historyMessages,
       expertMode: expertModeCheckbox.is(":checked"),
       onChunk: function (textSnapshot) {

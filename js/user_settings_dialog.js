@@ -72,6 +72,7 @@ function UserSettingsDialog(dialog, onLoad, onSave) {
                 aiApiKey                        : '',                        // Anthropic API key used by the AI Analyse feature
                 aiModel                        : aiModels.defaultModel,        // Anthropic model used by the AI Analyse feature
                 aiEffort                        : 'high',                        // Anthropic effort level used by the AI Analyse feature
+                aiSkillId                        : '',                        // Custom Agent Skill ID (skill_id) to load into the AI Analyse feature, if any
                 aiAnalysisInstructions        : '',                        // Last-used instructions for the AI Analyse feature
                 craft                                : {
                                                                         left  : '15%',        // position from left (as a percentage of width)
@@ -327,6 +328,10 @@ function UserSettingsDialog(dialog, onLoad, onSave) {
                 currentSettings.aiEffort = $(this).val();
         });
 
+        $(".ai-skill-id-input").on("input", function() {
+                currentSettings.aiSkillId = $(this).val();
+        });
+
     $(".legend-units").click(function() {
         currentSettings.legendUnits = $(this).is(":checked");
     });
@@ -404,6 +409,7 @@ function UserSettingsDialog(dialog, onLoad, onSave) {
                         $(".ai-api-key-input").val(currentSettings.aiApiKey || '');
                         $(".ai-model-select").val(currentSettings.aiModel || aiModels.defaultModel);
                         $(".ai-effort-select").val(currentSettings.aiEffort || 'high');
+                        $(".ai-skill-id-input").val(currentSettings.aiSkillId || '');
 
                         if(currentSettings.legendUnits!=null) {
                                 // set the toggle switch
