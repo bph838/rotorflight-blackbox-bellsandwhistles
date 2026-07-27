@@ -156,6 +156,36 @@ var TuningLog = TuningLog || {};
         });
     };
 
+    /**
+     * Returns an error message if `log` doesn't look like a tuning log file, or null if it's
+     * fine to use. Guards against a user picking an unrelated JSON file (or a corrupted one) in
+     * the "Open" dialog - without this, e.g. a `null` or non-object `entries` element would
+     * later throw when code like entryCost() or findEntryIndexById() dereferences it directly.
+     */
+    function validationError(log) {
+        if (!log || typeof log !== 'object' || Array.isArray(log)) {
+            return 'This file is not a tuning log.';
+        }
+
+        if (typeof log.formatVersion !== 'number') {
+            return 'This file is not a tuning log.';
+        }
+
+        if (log.entries !== undefined) {
+            if (!Array.isArray(log.entries)) {
+                return 'This file is not a tuning log (its "entries" field is malformed).';
+            }
+
+            for (var i = 0; i < log.entries.length; i++) {
+                if (!log.entries[i] || typeof log.entries[i] !== 'object') {
+                    return 'This file is not a tuning log (its "entries" field is malformed).';
+                }
+            }
+        }
+
+        return null;
+    }
+
     TuningLog.loadFromPath = function(filePath, onDone, onError) {
         var fs = require('fs');
 
@@ -170,6 +200,12 @@ var TuningLog = TuningLog || {};
                 log = JSON.parse(data);
             } catch (e) {
                 if (onError) onError(e);
+                return;
+            }
+
+            var error = validationError(log);
+            if (error) {
+                if (onError) onError(new Error(error));
                 return;
             }
 
